@@ -1,13 +1,11 @@
 (function() {
-  /*************************************
-   * 1. Stwórz style i kontener menu
-   *************************************/
+  // 1. Dodaj style
   const style = document.createElement('style');
   style.innerHTML = `
     /* Styl menu */
     #msp2Menu {
-      display: none;
-      width: 220px;
+      display: none;              /* Domyślnie ukryte */
+      width: 200px;
       padding: 10px;
       background-color: #f5f5f5;
       border: 2px solid #ccc;
@@ -15,9 +13,10 @@
       position: fixed;
       top: 50px;
       left: 50px;
-      z-index: 9999;
-      font-family: sans-serif;
+      z-index: 9999;             /* żeby przykrywało inne elementy */
+      font-family: sans-serif;    /* przykład */
     }
+
     /* Przycisk otwierania/zamykania menu */
     #msp2ToggleBtn {
       position: fixed;
@@ -26,13 +25,15 @@
       z-index: 10000;
       padding: 5px 10px;
       cursor: pointer;
-      font-family: sans-serif;
+      font-family: sans-serif;    /* przykład */
     }
-    /* Nagłówek menu */
+
+    /* Nagłówek w menu */
     #msp2Menu h3 {
       margin: 0 0 10px 0;
     }
-    /* Checkbox + label */
+
+    /* Checkbox */
     #msp2Menu label {
       display: block;
       margin-top: 10px;
@@ -40,136 +41,131 @@
   `;
   document.head.appendChild(style);
 
+  // 2. Stwórz przycisk do otwierania/zamykania menu
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
   toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
   document.body.appendChild(toggleMenuBtn);
 
+  // 3. Stwórz kontener menu
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>MSP2 - Wyłącz cenzurę</h3>
+    <h3>MSP2 Bypass</h3>
     <label>
-      <input type="checkbox" id="msp2CensorBypass" />
-      Włącz bypass (wyłącz cenzurę + patch czatu)
+      <input type="checkbox" id="msp2CheckboxBypass" />
+      Wyłącz cenzurę + wstaw \\u200B
     </label>
   `;
   document.body.appendChild(menu);
 
+  // 4. Logika otwierania/zamykania
   let isMenuVisible = false;
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  /*************************************
-   * 2. Funkcja wstawiająca \u200B (ZWS)
-   *************************************/
-  function insertZeroWidthSpaces(text) {
-    // Wstawia \u200B między każdy znak
-    return [...text].join('\u200B');
-  }
+  // ========== 5. Referencje do oryginalnych funkcji i kolejka wiadomości ==========
 
-  /**********************************************************
-   * 3. Jedna tablica na wszystkie ocenzurowane wiadomości
-   *    - Każde wysłanie wulgarnego słowa -> push do tablicy
-   *    - Każde przyjście "#####" -> shift z tablicy
-   **********************************************************/
-  const myLocalMessages = [];
-
-  /*************************************
-   * 4. Zmienna do przechowywania oryginałów funkcji
-   *************************************/
+  // Oryginalna funkcja sanitizeMessage
   let originalSanitizeMessage = null;
+  // Oryginalne sendChatMessage / displayChatMessage
   let originalSendChatMessage = null;
   let originalDisplayChatMessage = null;
 
-  /*************************************
-   * 5. Funkcja instalująca cały bypass
-   *************************************/
-  function installBypass() {
-    console.log('[MSP2] Instaluję bypass cenzury...');
+  // Kolejka oryginalnych wiadomości (FIFO)
+  const myLocalQueue = [];
 
-    // A) Nadpisanie sanitizeMessage (wyłącz cenzurę kliencką)
+  // Funkcja do wstawiania \u200B pomiędzy każdą literę
+  function insertZeroWidthSpaces(str) {
+    return [...str].join('\u200B');
+  }
+
+  // ========== 6. Funkcja włączająca "bypass" ==========
+
+  function installBypass() {
+    console.log('[MSP2] Instaluję bypass...');
+
+    // A) Wyłącz cenzurę client-side (sanitizeMessage)
     if (typeof window.sanitizeMessage === 'function' && !originalSanitizeMessage) {
       originalSanitizeMessage = window.sanitizeMessage;
       window.sanitizeMessage = function(text) {
-        // Po prostu zwracamy oryginał
-        console.log('[MSP2] Cenzura client-side -> wyłączona dla:', text);
+        console.log('[MSP2] Cenzura OFF - zwracam oryginalny text:', text);
         return text;
       };
-      console.log('[MSP2] sanitizeMessage spatchowany - cenzura off (client-side).');
+      console.log('[MSP2] sanitizeMessage spatchowany.');
     }
 
-    // B) Nadpisanie sendChatMessage (wstaw \u200B + zapisz oryginał do tablicy)
+    // B) Patch sendChatMessage (wstaw \u200B i odkładaj oryginał do kolejki)
     if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
       originalSendChatMessage = window.sendChatMessage;
+
       window.sendChatMessage = function(text) {
-        // 1) Wstawiamy znaki zero-width
-        const zwsText = insertZeroWidthSpaces(text);
+        // Odkładamy oryginalny (niezmieniony) tekst do kolejki
+        myLocalQueue.push(text);
 
-        // 2) Zapisujemy oryginał w tablicy
-        myLocalMessages.push(text);
+        // Tworzymy wersję z \u200B
+        const patchedText = insertZeroWidthSpaces(text);
+        console.log('[MSP2] Patch sendChatMessage: było:', text, '=> wysyłam:', patchedText);
 
-        console.log('[MSP2] Patch sendChatMessage -> Wysyłam:', zwsText, '| zapamiętuję oryginał:', text);
-        return originalSendChatMessage.call(this, zwsText);
+        return originalSendChatMessage.call(this, patchedText);
       };
-      console.log('[MSP2] sendChatMessage spatchowany (ZWS + localMessages).');
+      console.log('[MSP2] sendChatMessage spatchowany.');
     }
 
-    // C) Nadpisanie displayChatMessage (zamiana "#####" na oryginał z tablicy)
+    // C) Patch displayChatMessage (jeśli dostajemy "#####", to podmieniamy na pierwszy z kolejki)
     if (typeof window.displayChatMessage === 'function' && !originalDisplayChatMessage) {
       originalDisplayChatMessage = window.displayChatMessage;
+
       window.displayChatMessage = function(userName, message) {
+        // Jeśli serwer odesłał "#####", pobierz pierwszy oryginał z kolejki
         if (message === '#####') {
-          // Ściągamy pierwszy oryginał z kolejki
-          const original = myLocalMessages.shift();
+          const original = myLocalQueue.shift(); // Zdejmujemy z kolejki
           if (original) {
-            console.log('[MSP2] Patch displayChatMessage -> "#####" zamieniam na:', original);
+            console.log('[MSP2] Patch displayChatMessage: Zastępuję "#####":', message, '=>', original);
             message = original;
           }
         }
         return originalDisplayChatMessage.call(this, userName, message);
       };
-      console.log('[MSP2] displayChatMessage spatchowany (odcenzurowywanie w locie).');
+      console.log('[MSP2] displayChatMessage spatchowany.');
     }
   }
 
-  /*************************************
-   * 6. Funkcja usuwająca cały bypass
-   *************************************/
-  function uninstallBypass() {
-    console.log('[MSP2] Usuwam bypass cenzury...');
+  // ========== 7. Funkcja wyłączająca "bypass" ==========
 
-    // Przywróć sanitizeMessage
+  function uninstallBypass() {
+    console.log('[MSP2] Usuwam bypass...');
+
+    // A) Przywróć sanitizeMessage
     if (originalSanitizeMessage) {
       window.sanitizeMessage = originalSanitizeMessage;
       originalSanitizeMessage = null;
-      console.log('[MSP2] Przywrócono oryginalne sanitizeMessage.');
+      console.log('[MSP2] Przywrócono sanitizeMessage.');
     }
 
-    // Przywróć sendChatMessage
+    // B) Przywróć sendChatMessage
     if (originalSendChatMessage) {
       window.sendChatMessage = originalSendChatMessage;
       originalSendChatMessage = null;
-      console.log('[MSP2] Przywrócono oryginalne sendChatMessage.');
+      console.log('[MSP2] Przywrócono sendChatMessage.');
     }
 
-    // Przywróć displayChatMessage
+    // C) Przywróć displayChatMessage
     if (originalDisplayChatMessage) {
       window.displayChatMessage = originalDisplayChatMessage;
       originalDisplayChatMessage = null;
-      console.log('[MSP2] Przywrócono oryginalne displayChatMessage.');
+      console.log('[MSP2] Przywrócono displayChatMessage.');
     }
 
-    // Wyczyść tablicę
-    myLocalMessages.length = 0;
+    // Wyczyść kolejkę (by nie przesuwała się dalej)
+    myLocalQueue.length = 0;
   }
 
-  /*********************************************************
-   * 7. Jedyny checkbox do włączania/wyłączania bypassu
-   *********************************************************/
-  const bypassCheckbox = document.getElementById('msp2CensorBypass');
+  // ========== 8. Checkbox, który włącza/wyłącza bypass ==========
+
+  const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
     if (bypassCheckbox.checked) {
       installBypass();
