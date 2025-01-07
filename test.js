@@ -1,6 +1,6 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu i stylów w stylu Primordial UI z zakładkami i drzewkami
+   * 1. Dodanie menu i stylów w stylu Primordial UI z zakładkami i drzewkami oraz przesuwaniem
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
@@ -11,22 +11,24 @@
       background-color: #121212; /* Głęboki czarny odcień */
       border: 1px solid #2a2a2a;
       border-radius: 10px;
-      position: fixed;
+      position: absolute;
       top: 50px;
       left: 50px;
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #f0f0f0; /* Jasno biały tekst */
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      cursor: move;
     }
 
     #msp2Menu h3 {
       color: #d1d1d1; /* Szary odcień */
-      font-size: 1.7em;
+      font-size: 1.5em;
       margin-bottom: 20px;
       text-align: center;
       border-bottom: 1px solid #2a2a2a;
       padding-bottom: 10px;
+      user-select: none;
     }
 
     .tabs {
@@ -38,12 +40,13 @@
     .tab {
       flex: 1;
       text-align: center;
-      padding: 10px;
+      padding: 8px;
       cursor: pointer;
       color: #d1d1d1;
       background-color: #1c1c1c;
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
+      font-size: 0.9em;
     }
 
     .tab.active {
@@ -56,17 +59,16 @@
     }
 
     .tab-content.active {
-      display: block;
+      display: flex;
+      justify-content: space-between;
     }
 
     .tree-column {
-      display: inline-block;
       width: 48%;
-      vertical-align: top;
       padding: 10px;
       background-color: #1c1c1c;
       border-radius: 6px;
-      margin: 10px 1%;
+      margin: 10px 0;
       border: 1px solid #2a2a2a;
     }
 
@@ -196,6 +198,26 @@
   document.body.appendChild(menu);
 
   let isMenuVisible = false;
+  let offsetX, offsetY;
+  let isDragging = false;
+
+  menu.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - menu.getBoundingClientRect().left;
+    offsetY = e.clientY - menu.getBoundingClientRect().top;
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      menu.style.left = `${e.clientX - offsetX}px`;
+      menu.style.top = `${e.clientY - offsetY}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
