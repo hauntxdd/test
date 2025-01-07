@@ -70,15 +70,14 @@
     return [...str].join('\u200B');
   }
 
-  // Patch JSON / formData, by w polu "text", "message" itp. wstawić \u200B
+  // Patch JSON / formData, by w polu "text", "message" (itp.) wstawić \u200B
   function patchBodyString(bodyString) {
     // 1) Spróbuj JSON
     try {
       const data = JSON.parse(bodyString);
       let changed = false;
 
-      // Spróbujmy klucze: text, message, ...
-      // (ew. można dodać "actorName" itd. – cokolwiek chcesz)
+      // Możesz tu dopisać więcej kluczy do sprawdzania
       const possibleKeys = ['text', 'message'];
 
       for (const k of possibleKeys) {
@@ -165,11 +164,11 @@
       console.log('[MSP2] sendChatMessage spatchowany (dodawanie \\u200B).');
     }
 
-    // C) Patch fetch → nasłuchujemy Endpointy MSP (SendChatMessage..., PostToWall..., itp.)
+    // C) Patch fetch → nasłuchujemy Endpoint (np. /gamemessaging/v1/participants/)
     if (!originalFetch && typeof window.fetch === 'function') {
       originalFetch = window.fetch;
       window.fetch = async function(input, init) {
-        // detekcja:
+        // sprawdź url, czy pasuje do /gamemessaging/v1/participants/
         try {
           let url = '';
           if (typeof input === 'string') {
@@ -177,12 +176,8 @@
           } else if (input && input.url) {
             url = input.url;
           }
-          // sprawdź, czy to jest Gateway.aspx z metodą ...
-          if (url.includes('Gateway.aspx') &&
-              (url.match(/SendChatMessageWithModerationCall/i) ||
-               url.match(/PostToWallWithModerationCall/i) ||
-               url.match(/ProfileService/i) )) {
-            console.log('[MSP2:fetchHook] Wykryto endpoint chat/wall:', url);
+          if (url.includes('gamemessaging/v1/participants/') && init && init.method === 'POST') {
+            console.log('[MSP2:fetchHook] Wykryto endpoint chat:', url);
             patchRequestBody(init);
           }
         } catch (err) {
