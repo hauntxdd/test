@@ -59,8 +59,9 @@
 
     .tab-content {
       display: none;
-      height: calc(100% - 100px);
-      padding-bottom: 40px; /* Zwiększenie miejsca na footer */
+      height: calc(100% - 110px);
+      padding-bottom: 50px;
+      box-sizing: border-box;
     }
 
     .tab-content.active {
@@ -75,12 +76,13 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 40px);
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #2a2a2a;
       background-color: #1a1a1a;
       border-radius: 8px;
+      outline: 1px solid #2a2a2a; /* Outline dla kolumn */
     }
 
     .tree-column {
