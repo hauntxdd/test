@@ -43,13 +43,13 @@
     .tab {
       flex: 1;
       text-align: center;
-      padding: 6px; /* Zmniejszone rozmiary zakładek */
+      padding: 8px; /* Rozmiar zakładek */
       cursor: pointer;
       color: #d1d1d1;
       background-color: #1c1c1c;
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
-      font-size: 0.85em; /* Mniejsza czcionka */
+      font-size: 0.9em;
     }
 
     .tab.active {
@@ -64,18 +64,19 @@
     .tab-content.active {
       display: flex;
       justify-content: space-between;
+      gap: 20px; /* Odstęp między kolumnami */
     }
 
     .tree-column-container {
       display: flex;
       justify-content: space-between;
-      gap: 15px;
+      gap: 20px;
       width: 100%;
     }
 
     .tree-column {
       flex: 1;
-      padding: 8px; /* Mniejszy padding */
+      padding: 10px; /* Zwiększony padding */
       background-color: #1c1c1c;
       border-radius: 6px;
       margin: 10px 0;
@@ -83,8 +84,8 @@
     }
 
     .tree-item {
-      margin: 8px 0;
-      padding: 8px; /* Mniejszy padding dla opcji */
+      margin: 10px 0;
+      padding: 10px; /* Zwiększony padding dla opcji */
       background-color: #2b2b2b;
       border-radius: 6px;
       border: 1px solid #3a3a3a;
@@ -123,7 +124,7 @@
 
     #msp2CloseBtn {
       margin-top: 15px;
-      padding: 10px 16px; /* Mniejszy rozmiar przycisku zamykania */
+      padding: 10px 16px;
       background-color: #007acc;
       border: none;
       color: white;
@@ -149,7 +150,7 @@
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>🛠️ MSP2 Tool - by a</h3>
+    <h3>🛠️ Bypass Chat Filter</h3>
     <div class="tabs">
       <div class="tab active" data-tab="misc">Misc</div>
       <div class="tab" data-tab="profile">Profile</div>
