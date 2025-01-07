@@ -1,5 +1,5 @@
 import { createMenu } from './menu.js';
-import { modifyWebSocket } from './features/chatfilter.js';
+import { modifyWebSocket } from './features/bypasschatfilter.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   let bypassEnabled = false;
