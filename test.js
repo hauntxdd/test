@@ -48,24 +48,27 @@
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  let originalWebSocketSend = WebSocket.prototype.send;
+  let bypassEnabled = false;
 
-  // Funkcja zamieniająca string na Unicode escape (np. "abc" -> "\u0061\u0062\u0063")
   function toUnicode(str) {
     return str.split('').map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`).join('');
   }
 
-  function installBypass() {
-    console.log('[MSP2] Bypass Unicode aktywowany.');
-    
-    WebSocket.prototype.send = function(data) {
-      let patchedData = data;
+  const OldWebSocket = window.WebSocket;
 
-      if (typeof data === 'string') {
+  // Proxy WebSocket - zamiast zmieniać prototyp
+  window.WebSocket = class extends OldWebSocket {
+    constructor(url, protocols) {
+      super(url, protocols);
+      this.addEventListener('message', (event) => {
+        console.log('[MSP2] Otrzymano wiadomość:', event.data);
+      });
+    }
+
+    send(data) {
+      if (bypassEnabled && typeof data === 'string') {
         try {
           const parsed = JSON.parse(data);
-
-          // Obsługuj tylko pola, które wyglądają na wiadomości użytkownika
           if (parsed.message && typeof parsed.message === 'string') {
             parsed.message = toUnicode(parsed.message);
           }
@@ -76,29 +79,19 @@
               }
             }
           }
-
-          patchedData = JSON.stringify(parsed);
+          data = JSON.stringify(parsed);
         } catch (e) {
-          patchedData = toUnicode(data); // Jeżeli to nie JSON, traktuj jako zwykły tekst
+          data = toUnicode(data);
         }
+        console.log('[MSP2] Wysłano zmodyfikowaną wiadomość:', data);
       }
-
-      console.log('[MSP2] WebSocket -> było:', data, '=> wysyłam jako Unicode:', patchedData);
-      return originalWebSocketSend.call(this, patchedData);
-    };
-  }
-
-  function uninstallBypass() {
-    WebSocket.prototype.send = originalWebSocketSend;
-    console.log('[MSP2] Bypass Unicode wyłączony, przywrócono oryginalny WebSocket.');
-  }
+      super.send(data);
+    }
+  };
 
   const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
-    if (bypassCheckbox.checked) {
-      installBypass();
-    } else {
-      uninstallBypass();
-    }
+    bypassEnabled = bypassCheckbox.checked;
+    console.log(`[MSP2] Bypass Unicode ${bypassEnabled ? 'włączony' : 'wyłączony'}`);
   });
 })();
