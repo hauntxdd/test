@@ -1,10 +1,9 @@
 (function() {
   /*************************************
-   * 1. Dodaj style
+   * 1. Dodaj style i menu
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
-    /* Styl menu */
     #msp2Menu {
       display: none;
       width: 200px;
@@ -18,7 +17,6 @@
       z-index: 9999;
       font-family: sans-serif;
     }
-    /* Przycisk otwierania/zamykania menu */
     #msp2ToggleBtn {
       position: fixed;
       top: 10px;
@@ -28,11 +26,9 @@
       cursor: pointer;
       font-family: sans-serif;
     }
-    /* Nagłówek w menu */
     #msp2Menu h3 {
       margin: 0 0 10px 0;
     }
-    /* Etykiety od checkboxów */
     #msp2Menu label {
       display: block;
       margin-top: 10px;
@@ -40,9 +36,7 @@
   `;
   document.head.appendChild(style);
 
-  /*************************************
-   * 2. Stwórz przycisk do otwierania menu
-   *************************************/
+  // Przycisk do otwierania/zamykania menu
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
   toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
