@@ -1,6 +1,6 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu UI w stylu Primordial
+   * 1. Dodanie menu UI w stylu Primordial z zakładkami i przeniesieniem checkboxów
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
@@ -30,10 +30,53 @@
       padding-bottom: 12px;
     }
 
-    #primordialMenu label {
+    .tab-container {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background-color: #222222;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .tab:hover {
+      background-color: #444444;
+    }
+
+    .tab.active {
+      background-color: #6e00ff;
+    }
+
+    .menu-section {
+      display: none;
+      border: 1px solid #444444;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .menu-section.active {
+      display: block;
+    }
+
+    .menu-section h4 {
+      margin-bottom: 12px;
+      font-size: 1.4em;
+      color: #b0b0b0;
+      text-align: center;
+    }
+
+    .menu-label {
+      display: flex;
       align-items: center;
+      justify-content: flex-start;
       margin: 10px 0;
       padding: 10px;
       background-color: #222222;
@@ -41,32 +84,15 @@
       border: 1px solid #333333;
     }
 
-    #primordialMenu input[type="checkbox"] {
+    .menu-label span {
       margin-left: 10px;
+    }
+
+    .menu-label input[type="checkbox"] {
+      margin-right: 10px;
       width: 24px;
       height: 24px;
-      accent-color: #ff007a; /* Customowy kolor */
-    }
-
-    #primordialToggleBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10000;
-      padding: 15px 20px;
-      background-color: #6e00ff; /* Fiolet */
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-      transition: background-color 0.4s, transform 0.2s;
-    }
-
-    #primordialToggleBtn:hover {
-      background-color: #5200b2; /* Ciemniejszy fiolet */
-      transform: scale(1.05);
+      accent-color: #ff007a;
     }
 
     #primordialCloseBtn {
@@ -86,79 +112,71 @@
     #primordialCloseBtn:hover {
       background-color: #b2005d;
     }
-
-    .menu-section {
-      border: 1px solid #444444;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-
-    .menu-section h4 {
-      margin-bottom: 12px;
-      font-size: 1.4em;
-      color: #b0b0b0;
-      text-align: center;
-    }
   `;
   document.head.appendChild(style);
-
-  const toggleMenuBtn = document.createElement('button');
-  toggleMenuBtn.id = 'primordialToggleBtn';
-  toggleMenuBtn.textContent = '⚙️ Otwórz menu';
-  document.body.appendChild(toggleMenuBtn);
 
   const menu = document.createElement('div');
   menu.id = 'primordialMenu';
   menu.innerHTML = `
-    <h3>⚙️ Primordial Menu</h3>
-    <div class="menu-section">
-      <h4>Ustawienia Widoku</h4>
-      <label>
-        <span>Render FOV (Kąt widzenia)</span>
-        <input type="range" id="fovSlider" min="0" max="180" step="5" value="90"/>
+    <h3>⚙️ Bypass Chat Filter</h3>
+    <div class="tab-container">
+      <div class="tab active" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="misc">Misc</div>
+      <div class="tab" data-tab="autoquiz">Autoquiz</div>
+    </div>
+    <div class="menu-section active" id="profile">
+      <h4>Profile Settings</h4>
+      <label class="menu-label">
+        <input type="checkbox" id="bypassChatToggle" />
+        <span>Bypass chat filter</span>
       </label>
-      <label>
-        <span>Viewmodel Offset</span>
-        <input type="checkbox" id="viewOffsetToggle"/>
+      <label class="menu-label">
+        <input type="checkbox" id="autoSaveProfileToggle" />
+        <span>Auto-save profile settings</span>
       </label>
     </div>
-    <div class="menu-section">
-      <h4>Usuwanie efektów</h4>
-      <label>
-        <span>Usuń Dym</span>
-        <input type="checkbox" id="removeSmokeToggle"/>
+    <div class="menu-section" id="misc">
+      <h4>Misc Options</h4>
+      <label class="menu-label">
+        <input type="checkbox" id="removeSmokeToggle" />
+        <span>Remove smoke effects</span>
       </label>
-      <label>
-        <span>Usuń Flash</span>
-        <input type="checkbox" id="removeFlashToggle"/>
+      <label class="menu-label">
+        <input type="checkbox" id="removeFlashToggle" />
+        <span>Remove flash effects</span>
       </label>
     </div>
-    <div class="menu-section">
-      <h4>Efekty Wizualne</h4>
-      <label>
-        <span>Zmniejszone światło</span>
-        <input type="checkbox" id="dimLightsToggle"/>
+    <div class="menu-section" id="autoquiz">
+      <h4>Autoquiz Settings</h4>
+      <label class="menu-label">
+        <input type="checkbox" id="autoQuizToggle" />
+        <span>Enable auto quiz hints</span>
       </label>
-      <label>
-        <span>Tryb klauna (kolorowe efekty)</span>
-        <input type="checkbox" id="clownModeToggle"/>
+      <label class="menu-label">
+        <input type="checkbox" id="notifyCorrectAnswersToggle" />
+        <span>Notify correct answers</span>
       </label>
     </div>
     <button id="primordialCloseBtn">Zamknij Menu</button>
   `;
   document.body.appendChild(menu);
 
-  let isMenuVisible = false;
-  toggleMenuBtn.addEventListener('click', () => {
-    isMenuVisible = !isMenuVisible;
-    menu.style.display = isMenuVisible ? 'block' : 'none';
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.menu-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(section => section.classList.remove('active'));
+
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
   });
 
   const closeMenuBtn = document.getElementById('primordialCloseBtn');
   closeMenuBtn.addEventListener('click', () => {
     menu.style.display = 'none';
-    isMenuVisible = false;
   });
 
   let bypassEnabled = false;
