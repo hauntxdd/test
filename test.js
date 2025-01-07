@@ -76,13 +76,13 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
-      height: calc(100% - 70px); /* Odstęp nad napisem kokaina */
+      height: calc(100% - 70px);
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #2a2a2a;
       background-color: #1a1a1a;
       border-radius: 8px;
-      outline: 1px solid #2a2a2a; /* Outline dla kolumn */
+      outline: 1px solid #2a2a2a;
     }
 
     .tree-column {
@@ -94,16 +94,17 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      outline: 1px solid #2a2a2a; /* Outline dla każdej kolumny */
+      outline: 1px solid #2a2a2a;
     }
 
     .tree-column h4 {
-      text-align: center;
+      text-align: left;
       margin-bottom: 10px;
       font-size: 1.1em;
       color: #d1d1d1;
       border-bottom: 1px solid #3a3a3a;
       padding-bottom: 5px;
+      padding-left: 5px;
     }
 
     .tree-item {
@@ -174,7 +175,7 @@
     <div class="tab-content active" id="misc">
       <div class="tree-column-container">
         <div class="tree-column">
-          <h4>Misc Options - Left</h4>
+          <h4>Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" id="msp2CheckboxBypass" /> Turn off chat filter</label>
           </div>
@@ -183,7 +184,7 @@
           </div>
         </div>
         <div class="tree-column">
-          <h4>Misc Options - Right</h4>
+          <h4>Additional Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> Misc Option 2</label>
           </div>
@@ -196,13 +197,13 @@
     <div class="tab-content" id="profile">
       <div class="tree-column-container">
         <div class="tree-column">
-          <h4>Profile Options - Left</h4>
+          <h4>Profile Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> Profile Option 1</label>
           </div>
         </div>
         <div class="tree-column">
-          <h4>Profile Options - Right</h4>
+          <h4>Other Profile Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> Profile Option 2</label>
           </div>
@@ -212,13 +213,13 @@
     <div class="tab-content" id="autoquiz">
       <div class="tree-column-container">
         <div class="tree-column">
-          <h4>AutoQuiz Options - Left</h4>
+          <h4>Quiz Options</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> AutoQuiz Question 1</label>
           </div>
         </div>
         <div class="tree-column">
-          <h4>AutoQuiz Options - Right</h4>
+          <h4>Other Quiz Options</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> AutoQuiz Question 2</label>
           </div>
