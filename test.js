@@ -149,7 +149,7 @@
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>🛠️ Bypass Chat Filter</h3>
+    <h3>🛠️ MSP2 Tool - by a</h3>
     <div class="tabs">
       <div class="tab active" data-tab="misc">Misc</div>
       <div class="tab" data-tab="profile">Profile</div>
