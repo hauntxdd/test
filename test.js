@@ -102,12 +102,34 @@
     // C) WebSocket send patch
     if (WebSocket.prototype.send === originalWebSocketSend) {
       WebSocket.prototype.send = function(data) {
+        let patchedData = data;
+
         if (typeof data === 'string') {
-          const patchedData = insertZeroWidthSpaces(data);
-          console.log('[MSP2] WebSocket -> było:', data, '=> wysyłam:', patchedData);
-          return originalWebSocketSend.call(this, patchedData);
+          try {
+            const parsed = JSON.parse(data); // Parsowanie JSON-a
+
+            // Wstaw `\u200B` tylko do pól zawierających wiadomości tekstowe
+            if (parsed.message) {
+              parsed.message = insertZeroWidthSpaces(parsed.message);
+            }
+            if (parsed.data && typeof parsed.data === 'object') {
+              for (const key in parsed.data) {
+                if (typeof parsed.data[key] === 'string' && key.toLowerCase().includes('message')) {
+                  parsed.data[key] = insertZeroWidthSpaces(parsed.data[key]);
+                }
+              }
+            }
+
+            // Przekształcenie na string JSON po edycji
+            patchedData = JSON.stringify(parsed);
+          } catch (e) {
+            // Jeśli nie jest to JSON, traktuj jako zwykły string
+            patchedData = insertZeroWidthSpaces(data);
+          }
         }
-        return originalWebSocketSend.apply(this, arguments);
+
+        console.log('[MSP2] WebSocket -> było:', data, '=> wysyłam:', patchedData);
+        return originalWebSocketSend.call(this, patchedData);
       };
       console.log('[MSP2] WebSocket.send spatchowany (dodawanie \\u200B).');
     }
