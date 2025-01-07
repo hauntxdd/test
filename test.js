@@ -6,8 +6,8 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 600px; /* Zwiększona szerokość */
-      height: 700px; /* Większa wysokość */
+      width: 750px; /* Szerokość menu */
+      height: 900px; /* Zwiększona wysokość */
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
@@ -20,7 +20,7 @@
       color: #f0f0f0;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
       cursor: move;
-      overflow: auto; /* Dodane przewijanie dla dużej wysokości */
+      overflow: hidden; /* Usuń przewijanie i rozciągnij elementy */
     }
 
     #msp2Menu h3 {
@@ -43,7 +43,7 @@
     .tab {
       flex: 1;
       text-align: center;
-      padding: 8px; /* Rozmiar zakładek */
+      padding: 8px;
       cursor: pointer;
       color: #d1d1d1;
       background-color: #1c1c1c;
@@ -59,12 +59,14 @@
 
     .tab-content {
       display: none;
+      height: calc(100% - 60px); /* Dostosowanie wysokości */
     }
 
     .tab-content.active {
       display: flex;
       justify-content: space-between;
-      gap: 20px; /* Odstęp między kolumnami */
+      gap: 20px;
+      height: 100%;
     }
 
     .tree-column-container {
@@ -72,20 +74,24 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
+      height: 100%;
     }
 
     .tree-column {
       flex: 1;
-      padding: 10px; /* Zwiększony padding */
+      padding: 10px;
       background-color: #1c1c1c;
       border-radius: 6px;
-      margin: 10px 0;
+      margin: 0;
       border: 1px solid #2a2a2a;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .tree-item {
       margin: 10px 0;
-      padding: 10px; /* Zwiększony padding dla opcji */
+      padding: 10px;
       background-color: #2b2b2b;
       border-radius: 6px;
       border: 1px solid #3a3a3a;
@@ -105,7 +111,7 @@
       top: 10px;
       left: 10px;
       z-index: 10000;
-      padding: 10px 16px; /* Zmniejszony rozmiar przycisku */
+      padding: 10px 16px;
       background-color: #007acc;
       border: none;
       border-radius: 8px;
@@ -120,24 +126,6 @@
     #msp2ToggleBtn:hover {
       background-color: #005a9e;
       transform: scale(1.05);
-    }
-
-    #msp2CloseBtn {
-      margin-top: 15px;
-      padding: 10px 16px;
-      background-color: #007acc;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-      width: 100%;
-      transition: background-color 0.3s;
-    }
-
-    #msp2CloseBtn:hover {
-      background-color: #005a9e;
     }
   `;
   document.head.appendChild(style);
@@ -210,7 +198,6 @@
         </div>
       </div>
     </div>
-    <button id="msp2CloseBtn">Zamknij</button>
   `;
   document.body.appendChild(menu);
 
@@ -240,12 +227,6 @@
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
-  });
-
-  const closeMenuBtn = document.getElementById('msp2CloseBtn');
-  closeMenuBtn.addEventListener('click', () => {
-    menu.style.display = 'none';
-    isMenuVisible = false;
   });
 
   const tabs = document.querySelectorAll('.tab');
