@@ -1,4 +1,4 @@
-(function() {
+(function () {
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
@@ -37,7 +37,7 @@
     <h3>Bypass MSP2</h3>
     <label>
       <input type="checkbox" id="msp2CheckboxBypass"/>
-      Wstaw Unicode tylko do wiadomości czatu
+      Wstaw Unicode tylko do wiadomości tekstowych
     </label>
   `;
   document.body.appendChild(menu);
@@ -50,11 +50,12 @@
 
   let bypassEnabled = false;
 
-  function insertUnicodeIfTextField(message) {
-    if (typeof message === 'string' && message.length > 1 && !message.includes("pingId") && !message.includes("position")) {
-      return [...message].join('\u200B');
+  // Wstawia Unicode tylko do tekstów czatu
+  function insertUnicode(text) {
+    if (typeof text === 'string' && text.trim().length > 1) {
+      return [...text].join('\u200B'); // Wstaw Unicode między każdą literą
     }
-    return message;
+    return text;
   }
 
   const OldWebSocket = window.WebSocket;
@@ -63,7 +64,7 @@
     constructor(url, protocols) {
       super(url, protocols);
       this.addEventListener('message', (event) => {
-        console.log('[MSP2] Otrzymano wiadomość:', event.data);
+        console.log('[MSP2] Odebrano wiadomość WebSocket:', event.data);
       });
     }
 
@@ -72,19 +73,18 @@
         try {
           const parsed = JSON.parse(data);
 
-          // Sprawdzamy tylko prawdziwe wiadomości tekstowe
-          if (parsed[1] && typeof parsed[1] === 'object') {
-            if (parsed[1].messageType && parsed[1].messageType === "chat") {
-              parsed[1].messageContent = insertUnicodeIfTextField(parsed[1].messageContent);
-            }
+          // Modyfikujemy tylko pola messageContent lub teksty czatu
+          if (parsed[1] && typeof parsed[1] === 'object' && parsed[1].messageContent) {
+            console.log('[MSP2] Przetwarzanie wiadomości tekstowej: ', parsed[1].messageContent);
+            parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
           }
 
           data = JSON.stringify(parsed);
         } catch (e) {
-          data = insertUnicodeIfTextField(data);
+          console.warn('[MSP2] Nie można sparsować wiadomości:', e);
         }
-        console.log('[MSP2] Wysłano zmodyfikowaną wiadomość:', data);
       }
+      console.log('[MSP2] Wysyłana wiadomość WebSocket:', data);
       super.send(data);
     }
   };
