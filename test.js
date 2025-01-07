@@ -37,7 +37,7 @@
     <h3>Bypass MSP2</h3>
     <label>
       <input type="checkbox" id="msp2CheckboxBypass"/>
-      Włącz Unicode dla wiadomości tekstowych
+      Wstaw Unicode tylko do wiadomości czatu
     </label>
   `;
   document.body.appendChild(menu);
@@ -50,13 +50,15 @@
 
   let bypassEnabled = false;
 
-  function toUnicode(str) {
-    return str.split('').map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`).join('');
+  function insertUnicodeIfTextField(message) {
+    if (typeof message === 'string' && message.length > 1 && !message.includes("pingId") && !message.includes("position")) {
+      return [...message].join('\u200B');
+    }
+    return message;
   }
 
   const OldWebSocket = window.WebSocket;
 
-  // Proxy WebSocket - zamiast zmieniać prototyp
   window.WebSocket = class extends OldWebSocket {
     constructor(url, protocols) {
       super(url, protocols);
@@ -69,19 +71,17 @@
       if (bypassEnabled && typeof data === 'string') {
         try {
           const parsed = JSON.parse(data);
-          if (parsed.message && typeof parsed.message === 'string') {
-            parsed.message = toUnicode(parsed.message);
-          }
-          if (parsed.data && typeof parsed.data === 'object') {
-            for (const key in parsed.data) {
-              if (typeof parsed.data[key] === 'string' && key.toLowerCase().includes('message')) {
-                parsed.data[key] = toUnicode(parsed.data[key]);
-              }
+
+          // Sprawdzamy tylko prawdziwe wiadomości tekstowe
+          if (parsed[1] && typeof parsed[1] === 'object') {
+            if (parsed[1].messageType && parsed[1].messageType === "chat") {
+              parsed[1].messageContent = insertUnicodeIfTextField(parsed[1].messageContent);
             }
           }
+
           data = JSON.stringify(parsed);
         } catch (e) {
-          data = toUnicode(data);
+          data = insertUnicodeIfTextField(data);
         }
         console.log('[MSP2] Wysłano zmodyfikowaną wiadomość:', data);
       }
