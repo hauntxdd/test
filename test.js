@@ -1,72 +1,108 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu i stylów w stylu ImGui
+   * 1. Dodanie menu i stylów w stylu Primordial UI z checkboxami po lewej stronie
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 300px;
-      padding: 20px;
-      background-color: #1e1e1e; /* Ciemny szary */
-      border: 1px solid #444;
-      border-radius: 8px;
+      width: 400px;
+      padding: 25px;
+      background-color: #121212; /* Głęboki czarny odcień */
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
       position: fixed;
       top: 50px;
       left: 50px;
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #ffffff; /* Biały tekst */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      color: #f0f0f0; /* Jasno biały tekst */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
     }
+
     #msp2Menu h3 {
-      color: #cccccc; /* Jasny szary */
-      font-size: 1.5em;
-      margin-bottom: 15px;
+      color: #d1d1d1; /* Szary odcień */
+      font-size: 1.7em;
+      margin-bottom: 20px;
       text-align: center;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 10px;
     }
+
     #msp2Menu label {
       display: flex;
       align-items: center;
-      margin: 10px 0;
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #1c1c1c;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
     }
+
+    #msp2Menu label span {
+      margin-left: 10px;
+      font-size: 1.1em;
+    }
+
     #msp2Menu input[type="checkbox"] {
       margin-right: 10px;
       width: 20px;
       height: 20px;
+      accent-color: #007acc; /* Niebieski odcień */
     }
+
     #msp2ToggleBtn {
       position: fixed;
       top: 10px;
       left: 10px;
       z-index: 10000;
-      padding: 10px 15px;
+      padding: 12px 18px;
       background-color: #007acc; /* Niebieski */
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       color: #ffffff;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transition: background-color 0.3s, transform 0.2s;
     }
+
     #msp2ToggleBtn:hover {
       background-color: #005a9e; /* Ciemniejszy niebieski */
+      transform: scale(1.05);
     }
+
     #msp2CloseBtn {
-      margin-top: 15px;
-      padding: 10px 15px;
+      margin-top: 20px;
+      padding: 12px 18px;
       background-color: #007acc;
       border: none;
       color: white;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      width: 100%;
       transition: background-color 0.3s;
     }
+
     #msp2CloseBtn:hover {
       background-color: #005a9e;
+    }
+
+    .menu-section {
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .menu-section h4 {
+      margin: 0 0 10px 0;
+      font-size: 1.2em;
+      color: #d1d1d1;
+      text-align: center;
     }
   `;
   document.head.appendChild(style);
@@ -80,10 +116,13 @@
   menu.id = 'msp2Menu';
   menu.innerHTML = `
     <h3>🛠️ Bypass Chat Filter</h3>
-    <label>
-      <input type="checkbox" id="msp2CheckboxBypass"/>
-      <span>Włącz Unicode w wiadomościach</span>
-    </label>
+    <div class="menu-section">
+      <h4>Opcje</h4>
+      <label>
+        <input type="checkbox" id="msp2CheckboxBypass"/>
+        <span>Włącz Unicode w wiadomościach</span>
+      </label>
+    </div>
     <button id="msp2CloseBtn">Zamknij</button>
   `;
   document.body.appendChild(menu);
