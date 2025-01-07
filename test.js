@@ -68,7 +68,7 @@
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      height: calc(100% - 80px);
+      height: calc(100% - 100px);
     }
 
     .tree-column-container {
@@ -99,14 +99,16 @@
 
     .tree-column h4 {
       position: absolute;
-      top: -20px;
-      left: 20px;
-      background-color: #1c1c1c;
+      top: 0;
+      left: 10px;
+      transform: translateY(-50%);
+      background-color: #121212;
       padding: 0 8px;
       color: #d1d1d1;
       font-size: 1.1em;
       text-align: left;
       margin: 0;
+      border-radius: 4px;
     }
 
     .tree-item {
