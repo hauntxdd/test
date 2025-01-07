@@ -54,7 +54,7 @@
     <h3>Moje Menu</h3>
     <label>
       <input type="checkbox" id="msp2Checkbox" />
-      Wyłącz cenzurę
+      Wyłącz cenzurę + analytics
     </label>
   `;
   document.body.appendChild(menu);
@@ -71,10 +71,9 @@
   
   myCheckbox.addEventListener('change', () => {
     if (myCheckbox.checked) {
-      // Włączamy "wyłączenie" cenzury
-      console.log('[MSP2] Checkbox zaznaczony - wyłączamy filtr (cenzurę).');
+      console.log('[MSP2] Checkbox zaznaczony – wyłączamy filtr (cenzurę) i blokujemy analytics.');
 
-      // Sprawdzamy, czy istnieje jakaś domniemana funkcja sanitizeMessage
+      // ===== 5A: Wyłączanie cenzury (nadpisanie sanitizeMessage) =====
       if (typeof window.sanitizeMessage === 'function') {
         // Zapisz oryginalną funkcję, aby móc ją przywrócić
         window._originalSanitizeMessage = window.sanitizeMessage;
@@ -85,13 +84,38 @@
           return text;
         };
       }
-    } else {
-      // Przywracamy cenzurę, jeśli była wcześniej wyłączona
-      console.log('[MSP2] Checkbox odznaczony - przywracamy oryginalny filtr.');
 
+      // ===== 5B: Blokowanie endpointu analytics (monkey-patching fetch) =====
+      if (!window._originalFetch) {
+        // Zachowaj oryginalne fetch
+        window._originalFetch = window.fetch;
+        
+        window.fetch = async function(resource, config) {
+          if (typeof resource === 'string' && resource.includes('analytics.eu.moviestarplanet.app')) {
+            console.log('[MSP2] Blokuję żądanie do analytics:', resource);
+            // Zwracamy "pustą" odpowiedź 200 OK
+            return Promise.resolve(new Response('', {
+              status: 200,
+              statusText: 'OK',
+            }));
+          }
+          // W innych przypadkach wykonuj oryginalny fetch
+          return window._originalFetch.apply(this, arguments);
+        };
+      }
+    } else {
+      console.log('[MSP2] Checkbox odznaczony – przywracamy cenzurę i odblokowujemy analytics.');
+
+      // ===== 5A: Przywracanie cenzury =====
       if (window._originalSanitizeMessage) {
         window.sanitizeMessage = window._originalSanitizeMessage;
-        delete window._originalSanitizeMessage; // Usuwamy tymczasową zmienną
+        delete window._originalSanitizeMessage;
+      }
+
+      // ===== 5B: Przywracanie oryginalnego fetcha (odblokowanie analytics) =====
+      if (window._originalFetch) {
+        window.fetch = window._originalFetch;
+        delete window._originalFetch;
       }
     }
   });
