@@ -7,7 +7,7 @@
     #msp2Menu {
       display: none;
       width: 450px; /* Mniejsza szerokość */
-      height: 600px; /* Większa wysokość */
+      height: 900px; /* Większa wysokość */
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
