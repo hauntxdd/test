@@ -3,7 +3,7 @@
    * 1. Dodaj style i menu
    *************************************/
   const style = document.createElement('style');
-  style.innerHTML = `
+  style.innerHTML = 
     #msp2Menu {
       display: none;
       width: 200px;
@@ -33,7 +33,7 @@
       display: block;
       margin-top: 10px;
     }
-  `;
+  ;
   document.head.appendChild(style);
 
   // Przycisk do otwierania/zamykania menu
