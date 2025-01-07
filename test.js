@@ -33,6 +33,16 @@
       display: block;
       margin-top: 10px;
     }
+    #sendTestMessageBtn {
+      display: block;
+      margin-top: 15px;
+      padding: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   `;
   document.head.appendChild(style);
 
@@ -51,6 +61,7 @@
       <input type="checkbox" id="msp2CheckboxBypass"/>
       Wstaw \\u200B + Wyłącz cenzurę kliencką
     </label>
+    <button id="sendTestMessageBtn">Wyślij wiadomość testową</button>
   `;
   document.body.appendChild(menu);
 
@@ -68,9 +79,8 @@
   let originalSendChatMessage = null;
   let originalWebSocketSend = WebSocket.prototype.send;
 
-  // Funkcja wstawiająca \u200B pomiędzy każdą literę
   function insertZeroWidthSpaces(str) {
-    return [...str].join('\u200B');
+    return [...str].join('\u200B'); // Wstawianie \u200B pomiędzy znaki
   }
 
   /*************************************
@@ -79,7 +89,7 @@
   function installBypass() {
     console.log('[MSP2] Włączam bypass: wstawiam \\u200B + wyłączam cenzurę w kliencie.');
 
-    // A) Wyłącz cenzurę kliencką (sanitizeMessage)
+    // Wyłącz cenzurę kliencką (sanitizeMessage)
     if (typeof window.sanitizeMessage === 'function' && !originalSanitizeMessage) {
       originalSanitizeMessage = window.sanitizeMessage;
       window.sanitizeMessage = function(text) {
@@ -88,7 +98,7 @@
       console.log('[MSP2] sanitizeMessage spatchowany (cenzura OFF).');
     }
 
-    // B) Patch sendChatMessage - wstaw \u200B
+    // Patch sendChatMessage - wstaw \u200B
     if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
       originalSendChatMessage = window.sendChatMessage;
       window.sendChatMessage = function(text) {
@@ -99,16 +109,13 @@
       console.log('[MSP2] sendChatMessage spatchowany (dodawanie \\u200B).');
     }
 
-    // C) WebSocket send patch
+    // WebSocket.send patch
     if (WebSocket.prototype.send === originalWebSocketSend) {
       WebSocket.prototype.send = function(data) {
         let patchedData = data;
-
         if (typeof data === 'string') {
           try {
-            const parsed = JSON.parse(data); // Parsowanie JSON-a
-
-            // Wstaw `\u200B` tylko do pól zawierających wiadomości tekstowe
+            const parsed = JSON.parse(data);
             if (parsed.message) {
               parsed.message = insertZeroWidthSpaces(parsed.message);
             }
@@ -119,15 +126,11 @@
                 }
               }
             }
-
-            // Przekształcenie na string JSON po edycji
             patchedData = JSON.stringify(parsed);
           } catch (e) {
-            // Jeśli nie jest to JSON, traktuj jako zwykły string
             patchedData = insertZeroWidthSpaces(data);
           }
         }
-
         console.log('[MSP2] WebSocket -> było:', data, '=> wysyłam:', patchedData);
         return originalWebSocketSend.call(this, patchedData);
       };
@@ -141,21 +144,21 @@
   function uninstallBypass() {
     console.log('[MSP2] Wyłączam bypass: przywracam oryginalne funkcje.');
 
-    // A) Przywróć sanitizeMessage
+    // Przywróć sanitizeMessage
     if (originalSanitizeMessage) {
       window.sanitizeMessage = originalSanitizeMessage;
       originalSanitizeMessage = null;
       console.log('[MSP2] Przywrócono oryginalne sanitizeMessage.');
     }
 
-    // B) Przywróć sendChatMessage
+    // Przywróć sendChatMessage
     if (originalSendChatMessage) {
       window.sendChatMessage = originalSendChatMessage;
       originalSendChatMessage = null;
       console.log('[MSP2] Przywrócono oryginalne sendChatMessage.');
     }
 
-    // C) Przywróć WebSocket.send
+    // Przywróć WebSocket.send
     if (WebSocket.prototype.send !== originalWebSocketSend) {
       WebSocket.prototype.send = originalWebSocketSend;
       console.log('[MSP2] Przywrócono oryginalne WebSocket.send.');
@@ -171,6 +174,20 @@
       installBypass();
     } else {
       uninstallBypass();
+    }
+  });
+
+  /*************************************
+   * 6. Testowe wysyłanie wiadomości
+   *************************************/
+  const sendTestMessageBtn = document.getElementById('sendTestMessageBtn');
+  sendTestMessageBtn.addEventListener('click', () => {
+    const testMessage = 'To jest wiadomość testowa!';
+    if (window.sendChatMessage) {
+      window.sendChatMessage(testMessage);
+      console.log('[MSP2] Testowa wiadomość wysłana przez sendChatMessage.');
+    } else {
+      console.warn('[MSP2] sendChatMessage nie jest dostępny.');
     }
   });
 })();
