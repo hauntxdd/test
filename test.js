@@ -53,8 +53,12 @@
   menu.innerHTML = `
     <h3>Moje Menu</h3>
     <label>
-      <input type="checkbox" id="msp2Checkbox" />
-      Wyłącz cenzurę + analytics
+      <input type="checkbox" id="msp2CheckboxCensor" />
+      Wyłącz cenzurę (client-side)
+    </label>
+    <label>
+      <input type="checkbox" id="msp2CheckboxPatchChat" />
+      Patch czatu (wysyłanie + wyświetlanie)
     </label>
   `;
   document.body.appendChild(menu);
@@ -66,57 +70,112 @@
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  // 5. Obsługa checkboxa
-  const myCheckbox = document.getElementById('msp2Checkbox');
-  
-  myCheckbox.addEventListener('change', () => {
-    if (myCheckbox.checked) {
-      console.log('[MSP2] Checkbox zaznaczony – wyłączamy filtr (cenzurę) i blokujemy analytics.');
+  // ========== 5. Wyłączanie cenzury w kliencie (sanitizeMessage) ==========
+  const checkboxCensor = document.getElementById('msp2CheckboxCensor');
 
-      // ===== 5A: Wyłączanie cenzury (nadpisanie sanitizeMessage) =====
+  checkboxCensor.addEventListener('change', () => {
+    if (checkboxCensor.checked) {
+      console.log('[MSP2] Wyłączanie cenzury w kliencie (sanitizeMessage).');
+
       if (typeof window.sanitizeMessage === 'function') {
-        // Zapisz oryginalną funkcję, aby móc ją przywrócić
         window._originalSanitizeMessage = window.sanitizeMessage;
-
-        // Nadpisz funkcję tak, by zwracała oryginalny tekst
         window.sanitizeMessage = function(text) {
-          console.log('[MSP2] Cenzura wyłączona, zwracam oryginalny tekst:', text);
+          console.log('[MSP2] Zwracam oryginalny tekst (cenzura OFF):', text);
           return text;
         };
-      }
-
-      // ===== 5B: Blokowanie endpointu analytics (monkey-patching fetch) =====
-      if (!window._originalFetch) {
-        // Zachowaj oryginalne fetch
-        window._originalFetch = window.fetch;
-        
-        window.fetch = async function(resource, config) {
-          if (typeof resource === 'string' && resource.includes('analytics.eu.moviestarplanet.app')) {
-            console.log('[MSP2] Blokuję żądanie do analytics:', resource);
-            // Zwracamy "pustą" odpowiedź 200 OK
-            return Promise.resolve(new Response('', {
-              status: 200,
-              statusText: 'OK',
-            }));
-          }
-          // W innych przypadkach wykonuj oryginalny fetch
-          return window._originalFetch.apply(this, arguments);
-        };
+      } else {
+        console.warn('[MSP2] Nie znaleziono window.sanitizeMessage w kliencie.');
       }
     } else {
-      console.log('[MSP2] Checkbox odznaczony – przywracamy cenzurę i odblokowujemy analytics.');
-
-      // ===== 5A: Przywracanie cenzury =====
+      console.log('[MSP2] Przywracanie cenzury w kliencie.');
       if (window._originalSanitizeMessage) {
         window.sanitizeMessage = window._originalSanitizeMessage;
         delete window._originalSanitizeMessage;
       }
+    }
+  });
 
-      // ===== 5B: Przywracanie oryginalnego fetcha (odblokowanie analytics) =====
-      if (window._originalFetch) {
-        window.fetch = window._originalFetch;
-        delete window._originalFetch;
-      }
+  // ========== 6. Patch czatu (wysyłanie + wyświetlanie) ==========
+  const checkboxPatchChat = document.getElementById('msp2CheckboxPatchChat');
+
+  // Pamięć lokalna: mapuje ID lub "#####"/cokolwiek -> oryginalny tekst
+  const myLocalMessages = {};
+
+  // Oryginalne referencje
+  let originalSendChatMessage = null;
+  let originalDisplayChatMessage = null;
+
+  function installChatPatches() {
+    console.log('[MSP2] Instalujemy patch czatu...');
+
+    // --- Patch wysyłania (sendChatMessage) ---
+    if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
+      originalSendChatMessage = window.sendChatMessage;
+
+      window.sendChatMessage = function(text) {
+        console.log('[MSP2] Patch sendChatMessage - zapamiętuję oryginalny text:', text);
+
+        // Przyjmijmy, że serwer zwróci '#####' za każde wulgarne słowo.
+        // Zapisz do lokalnej mapy:
+        // kluczem będzie np. '#####' (jeśli serwer zawsze tak cenzuruje)
+        // ALE: to działa tylko dla Twoich własnych wiadomości.
+        // Wersja prosta: "#####": text
+        myLocalMessages['#####'] = text; 
+
+        // Wywołaj oryginał
+        return originalSendChatMessage.apply(this, arguments);
+      };
+      console.log('[MSP2] sendChatMessage spatchowany.');
+    } else {
+      console.warn('[MSP2] Nie znaleziono sendChatMessage lub już spatchowane?');
+    }
+
+    // --- Patch wyświetlania (displayChatMessage) ---
+    if (typeof window.displayChatMessage === 'function' && !originalDisplayChatMessage) {
+      originalDisplayChatMessage = window.displayChatMessage;
+
+      window.displayChatMessage = function(userName, message) {
+        // Jesli serwer odesłał "#####", sprawdź, czy to nasza wiadomość
+        if (message === '#####') {
+          // Zamień na oryginał, jeśli mamy w myLocalMessages
+          const original = myLocalMessages['#####'];
+          if (original) {
+            console.log('[MSP2] Patch: Zastępujemy ##### ->', original);
+            message = original;
+          }
+        }
+        // Wywołaj oryginalną funkcję
+        return originalDisplayChatMessage.call(this, userName, message);
+      };
+      console.log('[MSP2] displayChatMessage spatchowany.');
+    } else {
+      console.warn('[MSP2] Nie znaleziono displayChatMessage lub już spatchowane?');
+    }
+  }
+
+  function uninstallChatPatches() {
+    console.log('[MSP2] Usuwamy patch czatu...');
+
+    // Przywróć sendChatMessage
+    if (originalSendChatMessage) {
+      window.sendChatMessage = originalSendChatMessage;
+      originalSendChatMessage = null;
+      console.log('[MSP2] Przywrócono oryginalne sendChatMessage.');
+    }
+
+    // Przywróć displayChatMessage
+    if (originalDisplayChatMessage) {
+      window.displayChatMessage = originalDisplayChatMessage;
+      originalDisplayChatMessage = null;
+      console.log('[MSP2] Przywrócono oryginalne displayChatMessage.');
+    }
+  }
+
+  checkboxPatchChat.addEventListener('change', () => {
+    if (checkboxPatchChat.checked) {
+      installChatPatches();
+    } else {
+      uninstallChatPatches();
     }
   });
 })();
