@@ -1,7 +1,7 @@
 (function() {
-  /**********************************************
-   * 1. Dodaj style i UI (menu + checkbox)
-   **********************************************/
+  /************************************************
+   * 1. Dodaj styl i UI (menu z checkbox)
+   ************************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
@@ -36,13 +36,11 @@
   `;
   document.head.appendChild(style);
 
-  // Przycisk do otwierania/zamykania menu
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
   toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
   document.body.appendChild(toggleMenuBtn);
 
-  // Kontener menu
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
@@ -54,152 +52,180 @@
   `;
   document.body.appendChild(menu);
 
-  // Logika otwierania/zamykania
   let isMenuVisible = false;
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  /**********************************************
-   * 2. Zmienne i pomocnicze funkcje
-   **********************************************/
-  let originalSanitizeMessage = null;
-  let originalFetch = null;
+  /************************************************
+   * 2. Zmienne i helpery
+   ************************************************/
+  let originalSanitizeMessage = null;    // do patchowania window.sanitizeMessage
+  let originalSendChatMessage = null;    // do patchowania window.sendChatMessage
+  let originalFetch = null;              // do patchowania fetch
 
   // Wstaw \u200B pomiędzy każdą literę
   function insertZeroWidthSpaces(str) {
     return [...str].join('\u200B');
   }
 
-  // (Opcjonalnie) Zdebuguj, czy w body jest pole "text"
-  // i tam wstaw \u200B:
-  function patchRequestBody(bodyString) {
-    /*
-      To TYLKO PRZYKŁAD, liczymy że body to JSON
-      i jest w nim "text": "...". 
-      Ale MSP może używać AMF/binarnego. 
-      Dla testu: 
-    */
+  // Patch JSON / formData, by w polu "text", "message" itp. wstawić \u200B
+  function patchBodyString(bodyString) {
+    // 1) Spróbuj JSON
     try {
-      const json = JSON.parse(bodyString);
+      const data = JSON.parse(bodyString);
+      let changed = false;
 
-      // np. poszukaj klucza "text" i spatchuj
-      if (json.text) {
-        json.text = insertZeroWidthSpaces(json.text);
-        console.log('[MSP2:fetchHook] Oryginalny text:', bodyString, ' => patched:', json.text);
+      // Spróbujmy klucze: text, message, ...
+      // (ew. można dodać "actorName" itd. – cokolwiek chcesz)
+      const possibleKeys = ['text', 'message'];
+
+      for (const k of possibleKeys) {
+        if (typeof data[k] === 'string') {
+          const oldVal = data[k];
+          data[k] = insertZeroWidthSpaces(oldVal);
+          console.log(`[MSP2] Patching JSON field '${k}' =>`, oldVal, '->', data[k]);
+          changed = true;
+        }
       }
-      return JSON.stringify(json);
-
+      if (changed) {
+        return JSON.stringify(data);
+      } else {
+        // nic nie zmieniliśmy
+        return bodyString;
+      }
     } catch (err) {
-      // body nie jest JSON-em → spróbujmy formData?
-      // Tu można spróbować parse'ować `text=...` itp.
-      // Poniżej mini hack: 
-      if (bodyString.includes('text=')) {
-        // text=Hello+world -> text=H&#x200B;e&#x200B;l&#x200B;l&#x200B;o ...
-        // UWAGA: to jest x-www-form-urlencoded, plusy, itp.
-        const newBody = bodyString.replace(
-          /(text=)([^&]+)/,
-          (match, prefix, val) => {
-            // decode e.g. "Hi+test" => "Hi test"
-            let decoded = decodeURIComponent(val.replace(/\+/g, ' '));
-            let patched = insertZeroWidthSpaces(decoded);
-            // re-encode
-            let reencoded = encodeURIComponent(patched).replace(/%20/g, '+');
-            return prefix + reencoded;
-          }
-        );
-        console.log('[MSP2:fetchHook] Patching formData body:\n', bodyString, '\n=>\n', newBody);
+      // body to nie JSON – idź dalej
+    }
+
+    // 2) Spróbuj x-www-form-urlencoded
+    if (bodyString.includes('=') && (bodyString.includes('&') || bodyString.includes('text=') || bodyString.includes('message='))) {
+      // prosta logika
+      const re = /(text|message)=([^&]+)/g;
+      let newBody = bodyString.replace(re, (match, key, val) => {
+        const decoded = decodeURIComponent(val.replace(/\+/g, ' '));
+        const patched = insertZeroWidthSpaces(decoded);
+        const reencoded = encodeURIComponent(patched).replace(/%20/g, '+');
+        console.log(`[MSP2] Patching formData '${key}' =>`, decoded, '->', patched);
+        return `${key}=${reencoded}`;
+      });
+      if (newBody !== bodyString) {
         return newBody;
       }
+    }
 
-      // W innym wypadku - nic nie robimy
-      console.warn('[MSP2:fetchHook] Nie udało się zpatchować body. (nie JSON / nie formData)', err);
-      return bodyString;
+    // 3) Inne formy (np. AMF binarny) – nic nie zrobimy
+    return bodyString;
+  }
+
+  // Patch obiekt 'init.body' w fetch
+  function patchRequestBody(init) {
+    if (!init || !init.method || init.method.toUpperCase() !== 'POST' || !init.body) {
+      return;
+    }
+
+    if (typeof init.body === 'string') {
+      init.body = patchBodyString(init.body);
+    } else if (init.body instanceof URLSearchParams) {
+      const raw = init.body.toString();
+      const newRaw = patchBodyString(raw);
+      init.body = new URLSearchParams(newRaw);
+    } else if (init.body instanceof Blob) {
+      console.warn('[MSP2] Body jest Blobem – skip (może AMF?).');
+    } else {
+      console.warn('[MSP2] Nieznany typ body – skip:', init.body);
     }
   }
 
-  /**********************************************
-   * 3. Instalacja bypass (cenzura off + fetchHook)
-   **********************************************/
+  /************************************************
+   * 3. Funkcja instalująca patch
+   ************************************************/
   function installBypass() {
-    console.log('[MSP2] installBypass');
+    console.log('[MSP2] installBypass() – wstawiam \\u200B + wyłączam cenzurę kliencką.');
 
-    // A) Wyłącz cenzurę w kliencie (o ile window.sanitizeMessage istnieje)
+    // A) Patch sanitizeMessage
     if (typeof window.sanitizeMessage === 'function' && !originalSanitizeMessage) {
       originalSanitizeMessage = window.sanitizeMessage;
       window.sanitizeMessage = function(text) {
-        // cenzura kliencka OFF
         console.log('[MSP2] sanitizeMessage => brak cenzury, oryginal:', text);
-        return text;
+        return text; // nic nie cenzurujemy
       };
       console.log('[MSP2] sanitizeMessage spatchowany (cenzura OFF).');
     }
 
-    // B) Hook fetch → szukaj wywołań do SendChatMessageWithModerationCall
+    // B) Patch sendChatMessage (starsze MSP?)
+    if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
+      originalSendChatMessage = window.sendChatMessage;
+      window.sendChatMessage = function(text) {
+        const patched = insertZeroWidthSpaces(text);
+        console.log('[MSP2] sendChatMessage => patched:', text, '->', patched);
+        return originalSendChatMessage.call(this, patched);
+      };
+      console.log('[MSP2] sendChatMessage spatchowany (dodawanie \\u200B).');
+    }
+
+    // C) Patch fetch → nasłuchujemy Endpointy MSP (SendChatMessage..., PostToWall..., itp.)
     if (!originalFetch && typeof window.fetch === 'function') {
       originalFetch = window.fetch;
       window.fetch = async function(input, init) {
+        // detekcja:
         try {
-          // Jeżeli widzimy endpoint do Gateway.aspx z param method=SendChatMessage...
-          let url = (typeof input === 'string') ? input : (input.url || '');
-          if (url.includes('Gateway.aspx') && url.match(/SendChatMessageWithModerationCall/i)) {
-            console.log('[MSP2:fetchHook] Detekcja endpointu czatu:', url);
-
-            if (init && init.method === 'POST' && init.body) {
-              // Musimy skopiować body, żeby je przerobić:
-              // body może być np. string, URLSearchParams, itp.
-              if (typeof init.body === 'string') {
-                // prosto - w stringu
-                init.body = patchRequestBody(init.body);
-              } else if (init.body instanceof Blob) {
-                // trudniej... moglibyśmy ewentualnie odczytać text z Bloba,
-                // ale to asynchroniczne. Dla uproszczenia - skip.
-                console.warn('[MSP2:fetchHook] Body jest Blobem - nie patchuję');
-              } else if (init.body instanceof URLSearchParams) {
-                // np. text=coś tam
-                const raw = init.body.toString();
-                init.body = new URLSearchParams(patchRequestBody(raw));
-              } else {
-                // Inne formy - skip
-                console.warn('[MSP2:fetchHook] Nieobsługiwana forma body:', init.body);
-              }
-            }
+          let url = '';
+          if (typeof input === 'string') {
+            url = input;
+          } else if (input && input.url) {
+            url = input.url;
+          }
+          // sprawdź, czy to jest Gateway.aspx z metodą ...
+          if (url.includes('Gateway.aspx') &&
+              (url.match(/SendChatMessageWithModerationCall/i) ||
+               url.match(/PostToWallWithModerationCall/i) ||
+               url.match(/ProfileService/i) )) {
+            console.log('[MSP2:fetchHook] Wykryto endpoint chat/wall:', url);
+            patchRequestBody(init);
           }
         } catch (err) {
-          console.warn('[MSP2:fetchHook] Błąd patchowania fetch:', err);
+          console.warn('[MSP2:fetchHook] Błąd patchowania:', err);
         }
-        // wywołaj oryginał
+        // oryginalne
         return originalFetch.apply(this, arguments);
       };
-      console.log('[MSP2] fetch zahookowany (dodawanie \\u200B).');
+      console.log('[MSP2] fetch zahookowany (patch text).');
     }
   }
 
-  /**********************************************
-   * 4. Deinstalacja (przywróć sanitize + fetch)
-   **********************************************/
+  /************************************************
+   * 4. Funkcja usuwająca patch
+   ************************************************/
   function uninstallBypass() {
-    console.log('[MSP2] uninstallBypass');
+    console.log('[MSP2] uninstallBypass() – przywracam oryginały.');
 
-    // A) Przywróć sanitizeMessage
+    // A) sanitizeMessage
     if (originalSanitizeMessage) {
       window.sanitizeMessage = originalSanitizeMessage;
       originalSanitizeMessage = null;
-      console.log('[MSP2] Przywrócono oryginalne sanitizeMessage.');
+      console.log('[MSP2] Przywrócono sanitizeMessage.');
     }
 
-    // B) Przywróć fetch
+    // B) sendChatMessage
+    if (originalSendChatMessage) {
+      window.sendChatMessage = originalSendChatMessage;
+      originalSendChatMessage = null;
+      console.log('[MSP2] Przywrócono sendChatMessage.');
+    }
+
+    // C) fetch
     if (originalFetch) {
       window.fetch = originalFetch;
       originalFetch = null;
-      console.log('[MSP2] Przywrócono oryginalne window.fetch.');
+      console.log('[MSP2] Przywrócono window.fetch.');
     }
   }
 
-  /**********************************************
-   * 5. Checkbox -> włącz/wyłącz
-   **********************************************/
+  /************************************************
+   * 5. Checkbox
+   ************************************************/
   const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
     if (bypassCheckbox.checked) {
@@ -208,4 +234,5 @@
       uninstallBypass();
     }
   });
+
 })();
