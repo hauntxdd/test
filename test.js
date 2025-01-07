@@ -1,12 +1,12 @@
 (function() {
-  /***************************************************
-   * 1. UI - styl i checkbox w menu
-   ***************************************************/
+  /*************************************
+   * 1. Dodaj style i menu
+   *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 220px;
+      width: 200px;
       padding: 10px;
       background-color: #f5f5f5;
       border: 2px solid #ccc;
@@ -36,167 +36,113 @@
   `;
   document.head.appendChild(style);
 
+  // Przycisk do otwierania/zamykania menu
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
-  toggleMenuBtn.textContent = 'Otwórz/Zamknij MSP2 Menu';
+  toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
   document.body.appendChild(toggleMenuBtn);
 
+  // Kontener menu
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>MSP2 Hooks</h3>
+    <h3>Bypass MSP2</h3>
     <label>
-      <input type="checkbox" id="msp2CheckboxBypass" />
-      Wstaw \\u200B + wyłącz cenzurę
+      <input type="checkbox" id="msp2CheckboxBypass"/>
+      Wstaw \\u200B + Wyłącz cenzurę kliencką
     </label>
   `;
   document.body.appendChild(menu);
 
+  // Pokaż/ukryj menu
   let isMenuVisible = false;
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  /***************************************************
-   * 2. Zmienne i helpery
-   ***************************************************/
+  /*************************************
+   * 2. Zmienne i pomocnicze funkcje
+   *************************************/
   let originalSanitizeMessage = null;
-  let originalGameInstanceSendMessage = null;
-  let originalPostMessageWrappers = {};
-  let originalNavigatorSendBeacon = null;
+  let originalSendChatMessage = null;
+  let originalWebSocketSend = WebSocket.prototype.send;
 
-  // Wstaw \u200B pomiędzy każdą literę
+  // Funkcja wstawiająca \u200B pomiędzy każdą literę
   function insertZeroWidthSpaces(str) {
-    if (!str || typeof str !== 'string') return str;
     return [...str].join('\u200B');
   }
 
-  // Spróbuj wykryć, czy param/string to chat/wiadomość i wstawić \u200B
-  function maybePatchText(str) {
-    // Możesz dodać dodatkowe heurystyki 
-    return insertZeroWidthSpaces(str);
-  }
-
-  /***************************************************
-   * 3. Hook (install) - włącz patch
-   ***************************************************/
+  /*************************************
+   * 3. Instalacja patchy
+   *************************************/
   function installBypass() {
-    console.log('[MSP2] instaluję hooki: cenzura OFF + \u200B w message.');
+    console.log('[MSP2] Włączam bypass: wstawiam \\u200B + wyłączam cenzurę w kliencie.');
 
-    // A) Wyłącz cenzurę client-side (jeśli jest)
+    // A) Wyłącz cenzurę kliencką (sanitizeMessage)
     if (typeof window.sanitizeMessage === 'function' && !originalSanitizeMessage) {
       originalSanitizeMessage = window.sanitizeMessage;
       window.sanitizeMessage = function(text) {
-        console.log('[MSP2] sanitizeMessage => skip cenzura, oryginal:', text);
-        return text; 
+        return text; // cenzura OFF
       };
-      console.log('[MSP2] OK - sanitizeMessage spatchowany.');
+      console.log('[MSP2] sanitizeMessage spatchowany (cenzura OFF).');
     }
 
-    // B) Hook gameInstance.SendMessage
-    if (window.gameInstance && typeof window.gameInstance.SendMessage === 'function' && !originalGameInstanceSendMessage) {
-      originalGameInstanceSendMessage = window.gameInstance.SendMessage;
-      window.gameInstance.SendMessage = function(objName, methodName, param) {
-        console.log('[MSP2] gameInstance.SendMessage intercept =>', objName, methodName, param);
-        // jeśli param jest typowym stringiem i wygląda na chat:
-        const patched = maybePatchText(param);
-        return originalGameInstanceSendMessage.call(this, objName, methodName, patched);
+    // B) Patch sendChatMessage - wstaw \u200B
+    if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
+      originalSendChatMessage = window.sendChatMessage;
+      window.sendChatMessage = function(text) {
+        const patched = insertZeroWidthSpaces(text);
+        console.log('[MSP2] sendChatMessage -> było:', text, '=> wysyłam:', patched);
+        return originalSendChatMessage.call(this, patched);
       };
-      console.log('[MSP2] OK - window.gameInstance.SendMessage spatchowany.');
+      console.log('[MSP2] sendChatMessage spatchowany (dodawanie \\u200B).');
     }
 
-    // C) Hook postMessage w kilku miejscach
-    // np. window.postMessage, window.top.postMessage, ...
-    const targets = [
-      { obj: window, key: 'postMessage' },
-      { obj: window.self, key: 'postMessage' },
-      { obj: window.frames, key: 'postMessage' },
-      { obj: window.top, key: 'postMessage' },
-      { obj: window.parent, key: 'postMessage' },
-    ];
-    targets.forEach(t => {
-      if (!t.obj || !t.obj[t.key]) return;
-      if (originalPostMessageWrappers[t.key + '_' + t.obj] != null) return; // juź spatchowane?
-
-      const original = t.obj[t.key];
-      originalPostMessageWrappers[t.key + '_' + t.obj] = original;
-
-      t.obj[t.key] = function(message, targetOrigin, transfer) {
-        console.log(`[MSP2] hooking postMessage =>`, message, targetOrigin);
-        if (typeof message === 'string') {
-          message = maybePatchText(message);
-        } else if (message && typeof message.text === 'string') {
-          message.text = maybePatchText(message.text);
-        }
-        return original.call(this, message, targetOrigin, transfer);
-      };
-      console.log('[MSP2] OK - spatchowano', t.key, 'w', t.obj);
-    });
-
-    // D) Hook navigator.sendBeacon
-    if (navigator && typeof navigator.sendBeacon === 'function' && !originalNavigatorSendBeacon) {
-      originalNavigatorSendBeacon = navigator.sendBeacon;
-      navigator.sendBeacon = function(url, data) {
-        console.log('[MSP2] hooking navigator.sendBeacon =>', url, data);
+    // C) WebSocket send patch
+    if (WebSocket.prototype.send === originalWebSocketSend) {
+      WebSocket.prototype.send = function(data) {
         if (typeof data === 'string') {
-          data = maybePatchText(data);
+          const patchedData = insertZeroWidthSpaces(data);
+          console.log('[MSP2] WebSocket -> było:', data, '=> wysyłam:', patchedData);
+          return originalWebSocketSend.call(this, patchedData);
         }
-        return originalNavigatorSendBeacon.call(this, url, data);
+        return originalWebSocketSend.apply(this, arguments);
       };
-      console.log('[MSP2] OK - navigator.sendBeacon spatchowany.');
+      console.log('[MSP2] WebSocket.send spatchowany (dodawanie \\u200B).');
     }
   }
 
-  /***************************************************
-   * 4. Uninstall - przywróć oryginały
-   ***************************************************/
+  /*************************************
+   * 4. Deinstalacja patchy
+   *************************************/
   function uninstallBypass() {
-    console.log('[MSP2] wyłączam hooki i przywracam oryginały.');
+    console.log('[MSP2] Wyłączam bypass: przywracam oryginalne funkcje.');
 
-    // A) sanitizeMessage
+    // A) Przywróć sanitizeMessage
     if (originalSanitizeMessage) {
       window.sanitizeMessage = originalSanitizeMessage;
       originalSanitizeMessage = null;
-      console.log('[MSP2] Przywrócono sanitizeMessage.');
+      console.log('[MSP2] Przywrócono oryginalne sanitizeMessage.');
     }
 
-    // B) gameInstance.SendMessage
-    if (originalGameInstanceSendMessage) {
-      window.gameInstance.SendMessage = originalGameInstanceSendMessage;
-      originalGameInstanceSendMessage = null;
-      console.log('[MSP2] Przywrócono gameInstance.SendMessage.');
+    // B) Przywróć sendChatMessage
+    if (originalSendChatMessage) {
+      window.sendChatMessage = originalSendChatMessage;
+      originalSendChatMessage = null;
+      console.log('[MSP2] Przywrócono oryginalne sendChatMessage.');
     }
 
-    // C) postMessage
-    const keys = Object.keys(originalPostMessageWrappers);
-    keys.forEach(k => {
-      // k np. 'postMessage_[object Window]'
-      const [methodName] = k.split('_'); 
-      // poszukaj 'window', 'window.top', etc.
-      // Niestety nie mamy 1:1 obiektu, więc w demie skip
-      // Gdybyśmy przechowywali (t.obj) w kluczu? 
-      // to dałoby się łatwiej przywrócić
-      // Poniżej prosta wersja 
-      // (z racji brak referencji do obiektu docelowego)
-      try {
-        window[methodName] = originalPostMessageWrappers[k];
-      } catch(e) { /* no-op */ }
-    });
-    originalPostMessageWrappers = {};
-    console.log('[MSP2] Przywrócono postMessage w window/top/parent/...');
-
-    // D) navigator.sendBeacon
-    if (originalNavigatorSendBeacon) {
-      navigator.sendBeacon = originalNavigatorSendBeacon;
-      originalNavigatorSendBeacon = null;
-      console.log('[MSP2] Przywrócono navigator.sendBeacon.');
+    // C) Przywróć WebSocket.send
+    if (WebSocket.prototype.send !== originalWebSocketSend) {
+      WebSocket.prototype.send = originalWebSocketSend;
+      console.log('[MSP2] Przywrócono oryginalne WebSocket.send.');
     }
   }
 
-  /***************************************************
-   * 5. Checkbox
-   ***************************************************/
+  /*************************************
+   * 5. Obsługa checkboxa
+   *************************************/
   const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
     if (bypassCheckbox.checked) {
