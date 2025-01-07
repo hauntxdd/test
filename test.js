@@ -1,5 +1,5 @@
 (function () {
-  /*************************************
+  /**************************************
    * 1. Dodanie menu i stylów w stylu Primordial UI z checkboxami po lewej stronie
    *************************************/
   const style = document.createElement('style');
