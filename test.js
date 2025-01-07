@@ -6,7 +6,7 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 650px; /* Szerokość menu */
+      width: 600px; /* Szerokość menu */
       height: 700px; /* Wysokość menu */
       padding: 25px;
       background-color: #121212;
@@ -59,7 +59,8 @@
 
     .tab-content {
       display: none;
-      height: calc(100% - 100px); /* Dostosowanie wysokości */
+      height: calc(100% - 100px);
+      padding-bottom: 40px; /* Zwiększenie miejsca na footer */
     }
 
     .tab-content.active {
@@ -75,9 +76,11 @@
       gap: 20px;
       width: 100%;
       height: 100%;
-      outline: 1px solid #2a2a2a;
       padding: 10px;
       box-sizing: border-box;
+      border: 1px solid #2a2a2a;
+      background-color: #1a1a1a;
+      border-radius: 8px;
     }
 
     .tree-column {
@@ -89,6 +92,15 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+    }
+
+    .tree-column h4 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      color: #d1d1d1;
+      border-bottom: 1px solid #3a3a3a;
+      padding-bottom: 5px;
     }
 
     .tree-item {
@@ -134,8 +146,10 @@
       text-align: right;
       font-size: 0.8em;
       color: #888;
-      margin-top: auto;
-      padding-top: 10px;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      user-select: none;
     }
   `;
   document.head.appendChild(style);
