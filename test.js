@@ -1,4 +1,3 @@
-<script>
 (function() {
   /*************************************
    * 1. Dodaj style i menu
