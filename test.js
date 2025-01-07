@@ -73,18 +73,27 @@
 
     if (bypassEnabled && typeof data === 'string') {
       try {
-        const parsed = JSON.parse(data);
+        // Sprawdzamy format danych Socket.IO
+        if (data.startsWith('42')) {
+          const firstBracketIndex = data.indexOf('[');
+          if (firstBracketIndex !== -1) {
+            const payload = data.substring(firstBracketIndex);
+            const parsed = JSON.parse(payload);
+            const messageType = parsed[0];
+            let messageContent = parsed[1];
 
-        // Przetwarzaj tylko wiadomości, które mogą zawierać tekst
-        if (parsed && Array.isArray(parsed) && parsed.length > 1 && typeof parsed[1] === 'object') {
-          if (parsed[1].messageContent) {
-            console.log('[MSP2] Znaleziono wiadomość tekstową:', parsed[1].messageContent);
-            parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
-            console.log('[MSP2] Po przekształceniu:', parsed[1].messageContent);
+            // Obsługa wiadomości "chatv2:send"
+            if (messageType === 'chatv2:send' && messageContent && messageContent.message) {
+              console.log('[MSP2] Wykryto wiadomość chat:', messageContent.message);
+              messageContent.message = insertUnicode(messageContent.message);
+              console.log('[MSP2] Po przekształceniu:', messageContent.message);
+
+              const newPayload = `42["chatv2:send",${JSON.stringify(messageContent)}]`;
+              console.log('[MSP2] WebSocket -> Zmodyfikowane dane:', newPayload);
+              return originalWebSocketSend.call(this, newPayload);
+            }
           }
         }
-
-        data = JSON.stringify(parsed); // Zamiana na string JSON
       } catch (e) {
         console.warn('[MSP2] Niepoprawny JSON lub inne dane:', data);
       }
