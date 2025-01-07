@@ -76,7 +76,7 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
-      height: calc(100% - 40px);
+      height: calc(100% - 70px); /* Odstęp nad napisem kokaina */
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #2a2a2a;
@@ -94,6 +94,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      outline: 1px solid #2a2a2a; /* Outline dla każdej kolumny */
     }
 
     .tree-column h4 {
