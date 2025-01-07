@@ -6,8 +6,8 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 750px; /* Szerokość menu */
-      height: 900px; /* Zwiększona wysokość */
+      width: 650px; /* Szerokość menu */
+      height: 700px; /* Wysokość menu */
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
@@ -20,7 +20,7 @@
       color: #f0f0f0;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
       cursor: move;
-      overflow: hidden; /* Usuń przewijanie i rozciągnij elementy */
+      overflow: hidden;
     }
 
     #msp2Menu h3 {
@@ -59,7 +59,7 @@
 
     .tab-content {
       display: none;
-      height: calc(100% - 60px); /* Dostosowanie wysokości */
+      height: calc(100% - 100px); /* Dostosowanie wysokości */
     }
 
     .tab-content.active {
@@ -75,6 +75,9 @@
       gap: 20px;
       width: 100%;
       height: 100%;
+      outline: 1px solid #2a2a2a;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .tree-column {
@@ -82,11 +85,10 @@
       padding: 10px;
       background-color: #1c1c1c;
       border-radius: 6px;
-      margin: 0;
       border: 1px solid #2a2a2a;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
     }
 
     .tree-item {
@@ -126,6 +128,14 @@
     #msp2ToggleBtn:hover {
       background-color: #005a9e;
       transform: scale(1.05);
+    }
+
+    .footer {
+      text-align: right;
+      font-size: 0.8em;
+      color: #888;
+      margin-top: auto;
+      padding-top: 10px;
     }
   `;
   document.head.appendChild(style);
@@ -198,6 +208,7 @@
         </div>
       </div>
     </div>
+    <div class="footer">Made by kokaina</div>
   `;
   document.body.appendChild(menu);
 
