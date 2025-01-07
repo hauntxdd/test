@@ -1,4 +1,7 @@
 (function () {
+  /*************************************
+   * 1. Dodaj styl i menu
+   *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
@@ -50,45 +53,46 @@
 
   let bypassEnabled = false;
 
-  // Wstawia Unicode tylko do tekstów czatu
+  /*************************************
+   * 2. Funkcja wstawiania Unicode do wiadomości
+   *************************************/
   function insertUnicode(text) {
     if (typeof text === 'string' && text.trim().length > 1) {
-      return [...text].join('\u200B'); // Wstaw Unicode między każdą literą
+      return [...text].join('\u200B'); // Wstaw Unicode (\u200B) między każdą literą
     }
     return text;
   }
 
-  const OldWebSocket = window.WebSocket;
+  /*************************************
+   * 3. Patch WebSocket
+   *************************************/
+  const originalWebSocketSend = WebSocket.prototype.send;
 
-  window.WebSocket = class extends OldWebSocket {
-    constructor(url, protocols) {
-      super(url, protocols);
-      this.addEventListener('message', (event) => {
-        console.log('[MSP2] Odebrano wiadomość WebSocket:', event.data);
-      });
-    }
-
-    send(data) {
+  WebSocket.prototype.send = function (data) {
+    try {
       if (bypassEnabled && typeof data === 'string') {
-        try {
-          const parsed = JSON.parse(data);
+        const parsed = JSON.parse(data);
 
-          // Modyfikujemy tylko pola messageContent lub teksty czatu
-          if (parsed[1] && typeof parsed[1] === 'object' && parsed[1].messageContent) {
-            console.log('[MSP2] Przetwarzanie wiadomości tekstowej: ', parsed[1].messageContent);
-            parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
-          }
-
-          data = JSON.stringify(parsed);
-        } catch (e) {
-          console.warn('[MSP2] Nie można sparsować wiadomości:', e);
+        // Modyfikuj tylko wiadomości tekstowe
+        if (parsed[1] && typeof parsed[1] === 'object' && parsed[1].messageContent) {
+          console.log('[MSP2] Oryginalna wiadomość:', parsed[1].messageContent);
+          parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
+          console.log('[MSP2] Zmieniona wiadomość:', parsed[1].messageContent);
         }
+
+        data = JSON.stringify(parsed); // Przekształcenie z powrotem do JSON
       }
-      console.log('[MSP2] Wysyłana wiadomość WebSocket:', data);
-      super.send(data);
+    } catch (e) {
+      console.warn('[MSP2] Niepoprawny JSON lub inne dane:', data);
     }
+
+    console.log('[MSP2] WebSocket wysyła dane:', data);
+    return originalWebSocketSend.apply(this, arguments); // Wywołanie oryginalnej funkcji
   };
 
+  /*************************************
+   * 4. Obsługa checkboxa w menu
+   *************************************/
   const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
     bypassEnabled = bypassCheckbox.checked;
