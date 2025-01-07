@@ -1,180 +1,100 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu UI w stylu Primordial z zakładkami i przeniesieniem checkboxów
+   * 1. Dodanie menu i stylów w stylu ImGui
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
-    #primordialMenu {
+    #msp2Menu {
       display: none;
-      width: 500px;
-      padding: 30px;
-      background-color: #181818;
-      border: 1px solid #333333;
-      border-radius: 12px;
+      width: 300px;
+      padding: 20px;
+      background-color: #1e1e1e; /* Ciemny szary */
+      border: 1px solid #444;
+      border-radius: 8px;
       position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 50px;
+      left: 50px;
       z-index: 9999;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      color: #f5f5f5;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #ffffff; /* Biały tekst */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
-
-    #primordialMenu h3 {
-      color: #c0c0c0;
-      font-size: 1.8em;
-      text-align: center;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #333333;
-      padding-bottom: 12px;
-    }
-
-    .tab-container {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
-
-    .tab {
-      padding: 10px 20px;
-      background-color: #222222;
-      border-radius: 8px;
-      cursor: pointer;
-      color: white;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-
-    .tab:hover {
-      background-color: #444444;
-    }
-
-    .tab.active {
-      background-color: #6e00ff;
-    }
-
-    .menu-section {
-      display: none;
-      border: 1px solid #444444;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-
-    .menu-section.active {
-      display: block;
-    }
-
-    .menu-section h4 {
-      margin-bottom: 12px;
-      font-size: 1.4em;
-      color: #b0b0b0;
+    #msp2Menu h3 {
+      color: #cccccc; /* Jasny szary */
+      font-size: 1.5em;
+      margin-bottom: 15px;
       text-align: center;
     }
-
-    .menu-label {
+    #msp2Menu label {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
       margin: 10px 0;
-      padding: 10px;
-      background-color: #222222;
-      border-radius: 6px;
-      border: 1px solid #333333;
     }
-
-    .menu-label span {
-      margin-left: 10px;
-    }
-
-    .menu-label input[type="checkbox"] {
+    #msp2Menu input[type="checkbox"] {
       margin-right: 10px;
-      width: 24px;
-      height: 24px;
-      accent-color: #ff007a;
+      width: 20px;
+      height: 20px;
     }
-
-    #primordialCloseBtn {
-      margin-top: 20px;
-      padding: 14px 20px;
-      background-color: #ff007a;
+    #msp2ToggleBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10000;
+      padding: 10px 15px;
+      background-color: #007acc; /* Niebieski */
+      border: none;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+    #msp2ToggleBtn:hover {
+      background-color: #005a9e; /* Ciemniejszy niebieski */
+    }
+    #msp2CloseBtn {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: #007acc;
       border: none;
       color: white;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: bold;
+      border-radius: 4px;
       cursor: pointer;
-      width: 100%;
-      transition: background-color 0.4s;
+      font-size: 14px;
+      transition: background-color 0.3s;
     }
-
-    #primordialCloseBtn:hover {
-      background-color: #b2005d;
+    #msp2CloseBtn:hover {
+      background-color: #005a9e;
     }
   `;
   document.head.appendChild(style);
 
+  const toggleMenuBtn = document.createElement('button');
+  toggleMenuBtn.id = 'msp2ToggleBtn';
+  toggleMenuBtn.textContent = '⚙️ Menu';
+  document.body.appendChild(toggleMenuBtn);
+
   const menu = document.createElement('div');
-  menu.id = 'primordialMenu';
+  menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>⚙️ Bypass Chat Filter</h3>
-    <div class="tab-container">
-      <div class="tab active" data-tab="profile">Profile</div>
-      <div class="tab" data-tab="misc">Misc</div>
-      <div class="tab" data-tab="autoquiz">Autoquiz</div>
-    </div>
-    <div class="menu-section active" id="profile">
-      <h4>Profile Settings</h4>
-      <label class="menu-label">
-        <input type="checkbox" id="bypassChatToggle" />
-        <span>Bypass chat filter</span>
-      </label>
-      <label class="menu-label">
-        <input type="checkbox" id="autoSaveProfileToggle" />
-        <span>Auto-save profile settings</span>
-      </label>
-    </div>
-    <div class="menu-section" id="misc">
-      <h4>Misc Options</h4>
-      <label class="menu-label">
-        <input type="checkbox" id="removeSmokeToggle" />
-        <span>Remove smoke effects</span>
-      </label>
-      <label class="menu-label">
-        <input type="checkbox" id="removeFlashToggle" />
-        <span>Remove flash effects</span>
-      </label>
-    </div>
-    <div class="menu-section" id="autoquiz">
-      <h4>Autoquiz Settings</h4>
-      <label class="menu-label">
-        <input type="checkbox" id="autoQuizToggle" />
-        <span>Enable auto quiz hints</span>
-      </label>
-      <label class="menu-label">
-        <input type="checkbox" id="notifyCorrectAnswersToggle" />
-        <span>Notify correct answers</span>
-      </label>
-    </div>
-    <button id="primordialCloseBtn">Zamknij Menu</button>
+    <h3>🛠️ Bypass Chat Filter</h3>
+    <label>
+      <input type="checkbox" id="msp2CheckboxBypass"/>
+      <span>Włącz Unicode w wiadomościach</span>
+    </label>
+    <button id="msp2CloseBtn">Zamknij</button>
   `;
   document.body.appendChild(menu);
 
-  const tabs = document.querySelectorAll('.tab');
-  const sections = document.querySelectorAll('.menu-section');
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      sections.forEach(section => section.classList.remove('active'));
-
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.tab).classList.add('active');
-    });
+  let isMenuVisible = false;
+  toggleMenuBtn.addEventListener('click', () => {
+    isMenuVisible = !isMenuVisible;
+    menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  const closeMenuBtn = document.getElementById('primordialCloseBtn');
+  const closeMenuBtn = document.getElementById('msp2CloseBtn');
   closeMenuBtn.addEventListener('click', () => {
     menu.style.display = 'none';
     isMenuVisible = false;
