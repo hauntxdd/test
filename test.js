@@ -76,7 +76,7 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
-      height: calc(100% - 70px);
+      height: calc(100% - 100px);
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #2a2a2a;
@@ -98,13 +98,15 @@
     }
 
     .tree-column h4 {
-      text-align: left;
-      margin-bottom: 10px;
-      font-size: 1.1em;
+      background-color: #1c1c1c;
       color: #d1d1d1;
-      border-bottom: 1px solid #3a3a3a;
-      padding-bottom: 5px;
-      padding-left: 5px;
+      font-size: 1.1em;
+      text-align: center;
+      padding: 8px 0;
+      margin: 0 0 10px 0;
+      border-bottom: 1px solid #2a2a2a;
+      border-radius: 6px 6px 0 0;
+      outline: 1px solid #2a2a2a;
     }
 
     .tree-item {
