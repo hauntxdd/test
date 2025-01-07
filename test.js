@@ -6,7 +6,8 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 600px;
+      width: 450px; /* Mniejsza szerokość */
+      height: 600px; /* Większa wysokość */
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
@@ -19,11 +20,12 @@
       color: #f0f0f0;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
       cursor: move;
+      overflow: auto; /* Dodane przewijanie dla dużej wysokości */
     }
 
     #msp2Menu h3 {
       color: #d1d1d1;
-      font-size: 1.5em;
+      font-size: 1.4em;
       margin-bottom: 20px;
       text-align: center;
       border-bottom: 1px solid #2a2a2a;
@@ -35,19 +37,19 @@
       display: flex;
       justify-content: center;
       border-bottom: 1px solid #2a2a2a;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .tab {
       flex: 1;
       text-align: center;
-      padding: 8px;
+      padding: 6px; /* Zmniejszone rozmiary zakładek */
       cursor: pointer;
       color: #d1d1d1;
       background-color: #1c1c1c;
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
-      font-size: 0.9em;
+      font-size: 0.85em; /* Mniejsza czcionka */
     }
 
     .tab.active {
@@ -67,13 +69,13 @@
     .tree-column-container {
       display: flex;
       justify-content: space-between;
-      gap: 20px;
+      gap: 15px;
       width: 100%;
     }
 
     .tree-column {
       flex: 1;
-      padding: 10px;
+      padding: 8px; /* Mniejszy padding */
       background-color: #1c1c1c;
       border-radius: 6px;
       margin: 10px 0;
@@ -81,8 +83,8 @@
     }
 
     .tree-item {
-      margin: 10px 0;
-      padding: 10px;
+      margin: 8px 0;
+      padding: 8px; /* Mniejszy padding dla opcji */
       background-color: #2b2b2b;
       border-radius: 6px;
       border: 1px solid #3a3a3a;
@@ -102,12 +104,12 @@
       top: 10px;
       left: 10px;
       z-index: 10000;
-      padding: 12px 18px;
+      padding: 10px 16px; /* Zmniejszony rozmiar przycisku */
       background-color: #007acc;
       border: none;
       border-radius: 8px;
       color: #ffffff;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
@@ -120,14 +122,14 @@
     }
 
     #msp2CloseBtn {
-      margin-top: 20px;
-      padding: 12px 18px;
+      margin-top: 15px;
+      padding: 10px 16px; /* Mniejszy rozmiar przycisku zamykania */
       background-color: #007acc;
       border: none;
       color: white;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       width: 100%;
       transition: background-color 0.3s;
