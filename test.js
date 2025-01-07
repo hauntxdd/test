@@ -6,8 +6,8 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 600px; /* Szerokość menu */
-      height: 700px; /* Wysokość menu */
+      width: 600px;
+      height: 700px;
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
@@ -68,7 +68,7 @@
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      height: 100%;
+      height: calc(100% - 80px);
     }
 
     .tree-column-container {
@@ -76,7 +76,6 @@
       justify-content: space-between;
       gap: 20px;
       width: 100%;
-      height: calc(100% - 100px);
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #2a2a2a;
@@ -95,18 +94,19 @@
       flex-direction: column;
       justify-content: flex-start;
       outline: 1px solid #2a2a2a;
+      position: relative;
     }
 
     .tree-column h4 {
+      position: absolute;
+      top: -20px;
+      left: 20px;
       background-color: #1c1c1c;
+      padding: 0 8px;
       color: #d1d1d1;
       font-size: 1.1em;
-      text-align: center;
-      padding: 8px 0;
-      margin: 0 0 10px 0;
-      border-bottom: 1px solid #2a2a2a;
-      border-radius: 6px 6px 0 0;
-      outline: 1px solid #2a2a2a;
+      text-align: left;
+      margin: 0;
     }
 
     .tree-item {
