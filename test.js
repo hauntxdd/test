@@ -1,12 +1,12 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu i stylów w stylu Primordial UI z checkboxami po lewej stronie
+   * 1. Dodanie menu i stylów w stylu Primordial UI z zakładkami i drzewkami
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 400px;
+      width: 500px;
       padding: 25px;
       background-color: #121212; /* Głęboki czarny odcień */
       border: 1px solid #2a2a2a;
@@ -29,26 +29,62 @@
       padding-bottom: 10px;
     }
 
-    #msp2Menu label {
+    .tabs {
       display: flex;
-      align-items: center;
-      margin: 15px 0;
+      border-bottom: 1px solid #2a2a2a;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      color: #d1d1d1;
+      background-color: #1c1c1c;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .tab.active {
+      background-color: #007acc;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tree-column {
+      display: inline-block;
+      width: 48%;
+      vertical-align: top;
       padding: 10px;
       background-color: #1c1c1c;
       border-radius: 6px;
+      margin: 10px 1%;
       border: 1px solid #2a2a2a;
     }
 
-    #msp2Menu label span {
-      margin-left: 10px;
-      font-size: 1.1em;
+    .tree-item {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #2b2b2b;
+      border-radius: 6px;
+      border: 1px solid #3a3a3a;
     }
 
-    #msp2Menu input[type="checkbox"] {
+    .tree-item label {
+      display: flex;
+      align-items: center;
+    }
+
+    .tree-item input[type="checkbox"] {
       margin-right: 10px;
-      width: 20px;
-      height: 20px;
-      accent-color: #007acc; /* Niebieski odcień */
     }
 
     #msp2ToggleBtn {
@@ -90,20 +126,6 @@
     #msp2CloseBtn:hover {
       background-color: #005a9e;
     }
-
-    .menu-section {
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-
-    .menu-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 1.2em;
-      color: #d1d1d1;
-      text-align: center;
-    }
   `;
   document.head.appendChild(style);
 
@@ -116,12 +138,58 @@
   menu.id = 'msp2Menu';
   menu.innerHTML = `
     <h3>🛠️ Bypass Chat Filter</h3>
-    <div class="menu-section">
-      <h4>Opcje</h4>
-      <label>
-        <input type="checkbox" id="msp2CheckboxBypass"/>
-        <span>Włącz Unicode w wiadomościach</span>
-      </label>
+    <div class="tabs">
+      <div class="tab active" data-tab="misc">Misc</div>
+      <div class="tab" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="autoquiz">AutoQuiz</div>
+    </div>
+    <div class="tab-content active" id="misc">
+      <div class="tree-column">
+        <h4>Opcje Misc 1</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja 1</label>
+        </div>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja 2</label>
+        </div>
+      </div>
+      <div class="tree-column">
+        <h4>Opcje Misc 2</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja A</label>
+        </div>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja B</label>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="profile">
+      <div class="tree-column">
+        <h4>Opcje Profilu 1</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja 1</label>
+        </div>
+      </div>
+      <div class="tree-column">
+        <h4>Opcje Profilu 2</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Opcja X</label>
+        </div>
+      </div>
+    </div>
+    <div class="tab-content" id="autoquiz">
+      <div class="tree-column">
+        <h4>Opcje AutoQuiz 1</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Pytanie 1</label>
+        </div>
+      </div>
+      <div class="tree-column">
+        <h4>Opcje AutoQuiz 2</h4>
+        <div class="tree-item">
+          <label><input type="checkbox" /> Pytanie X</label>
+        </div>
+      </div>
     </div>
     <button id="msp2CloseBtn">Zamknij</button>
   `;
@@ -137,6 +205,19 @@
   closeMenuBtn.addEventListener('click', () => {
     menu.style.display = 'none';
     isMenuVisible = false;
+  });
+
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(tc => tc.classList.remove('active'));
+
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
   });
 
   let bypassEnabled = false;
@@ -210,4 +291,3 @@
     console.log(`[MSP2] Bypass Unicode ${bypassEnabled ? 'włączony' : 'wyłączony'}`);
   });
 })();
-
