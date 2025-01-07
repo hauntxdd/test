@@ -73,7 +73,6 @@
 
     if (bypassEnabled && typeof data === 'string') {
       try {
-        // Sprawdzamy format danych Socket.IO
         if (data.startsWith('42')) {
           const firstBracketIndex = data.indexOf('[');
           if (firstBracketIndex !== -1) {
@@ -83,19 +82,30 @@
             let messageContent = parsed[1];
 
             // Obsługa wiadomości "chatv2:send"
-            if (messageType === 'chatv2:send' && messageContent && messageContent.message) {
-              console.log('[MSP2] Wykryto wiadomość chat:', messageContent.message);
-              messageContent.message = insertUnicode(messageContent.message);
-              console.log('[MSP2] Po przekształceniu:', messageContent.message);
+            if (messageType === 'chatv2:send' && messageContent && (messageContent.message || messageContent.messageContent)) {
+              const originalMessage = messageContent.message || messageContent.messageContent;
+              console.log('[MSP2] Wykryto wiadomość chat:', originalMessage);
 
-              const newPayload = `42["chatv2:send",${JSON.stringify(messageContent)}]`;
+              // Wstawienie Unicode tylko dla tekstowych wiadomości
+              if (typeof originalMessage === 'string') {
+                const modifiedMessage = insertUnicode(originalMessage);
+                console.log('[MSP2] Po przekształceniu:', modifiedMessage);
+
+                if (messageContent.message) {
+                  messageContent.message = modifiedMessage;
+                } else {
+                  messageContent.messageContent = modifiedMessage;
+                }
+              }
+
+              const newPayload = `42["${messageType}",${JSON.stringify(messageContent)}]`;
               console.log('[MSP2] WebSocket -> Zmodyfikowane dane:', newPayload);
               return originalWebSocketSend.call(this, newPayload);
             }
           }
         }
       } catch (e) {
-        console.warn('[MSP2] Niepoprawny JSON lub inne dane:', data);
+        console.warn('[MSP2] Błąd parsowania danych:', e, data);
       }
     }
 
