@@ -1,11 +1,11 @@
-export function insertUnicode(text) {
+window.insertUnicode = function (text) {
   if (typeof text === 'string' && text.trim().length > 1) {
     return [...text].join('\u200B');
   }
   return text;
-}
+};
 
-export function modifyWebSocket(bypassEnabled) {
+window.modifyWebSocket = function (bypassEnabled) {
   const originalWebSocketSend = WebSocket.prototype.send;
 
   WebSocket.prototype.send = function (data) {
@@ -19,11 +19,15 @@ export function modifyWebSocket(bypassEnabled) {
             const messageType = parsed[0];
             let messageContent = parsed[1];
 
-            if (messageType === 'chatv2:send' && messageContent && (messageContent.message || messageContent.messageContent)) {
+            if (
+              messageType === 'chatv2:send' &&
+              messageContent &&
+              (messageContent.message || messageContent.messageContent)
+            ) {
               const originalMessage = messageContent.message || messageContent.messageContent;
 
               if (typeof originalMessage === 'string') {
-                const modifiedMessage = insertUnicode(originalMessage);
+                const modifiedMessage = window.insertUnicode(originalMessage);
 
                 if (messageContent.message) {
                   messageContent.message = modifiedMessage;
@@ -32,7 +36,7 @@ export function modifyWebSocket(bypassEnabled) {
                 }
               }
 
-              const newPayload = `42["${messageType}",${JSON.stringify(messageContent)}]`;
+              const newPayload = 42 + `["${messageType}",${JSON.stringify(messageContent)}]`;
               return originalWebSocketSend.call(this, newPayload);
             }
           }
@@ -44,4 +48,4 @@ export function modifyWebSocket(bypassEnabled) {
 
     return originalWebSocketSend.call(this, data);
   };
-}
+};
