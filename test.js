@@ -1,3 +1,4 @@
+<script>
 (function() {
   /*************************************
    * 1. Dodaj style i menu
@@ -69,6 +70,7 @@
 
   // Funkcja wstawiająca \u200B pomiędzy każdą literę
   function insertZeroWidthSpaces(str) {
+    // Rozbij tekst na pojedyncze ‘znaki’ i między każdą parę wstaw \u200B
     return [...str].join('\u200B');
   }
 
@@ -136,3 +138,4 @@
     }
   });
 })();
+</script>
