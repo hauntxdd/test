@@ -6,8 +6,8 @@
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 450px; /* Mniejsza szerokość */
-      height: 900px; /* Większa wysokość */
+      width: 600px; /* Zwiększona szerokość */
+      height: 700px; /* Większa wysokość */
       padding: 25px;
       background-color: #121212;
       border: 1px solid #2a2a2a;
