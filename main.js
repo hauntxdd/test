@@ -1,5 +1,5 @@
 import { createMenu } from './menu.js';
-import { modifyWebSocket, insertUnicode } from './features/chatspam.js';
+import { modifyWebSocket } from './features/chatfilter.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   let bypassEnabled = false;
@@ -11,5 +11,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`[MSP2] Bypass Unicode ${bypassEnabled ? 'włączony' : 'wyłączony'}`);
   });
 
-  modifyWebSocket(() => bypassEnabled, insertUnicode);
+  modifyWebSocket(() => bypassEnabled);
 });
