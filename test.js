@@ -109,21 +109,21 @@
 
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
-  toggleMenuBtn.textContent = '⚙️ Menu';
+  toggleMenuBtn.textContent = '⚙️ menu';
   document.body.appendChild(toggleMenuBtn);
 
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>🛠️ Bypass Chat Filter</h3>
+    <h3>🛠️ made by a</h3>
     <div class="menu-section">
-      <h4>Opcje</h4>
+      <h4>opcje</h4>
       <label>
         <input type="checkbox" id="msp2CheckboxBypass"/>
-        <span>Włącz Unicode w wiadomościach</span>
+        <span>wylacz filtr chatu</span>
       </label>
     </div>
-    <button id="msp2CloseBtn">Zamknij</button>
+    <button id="msp2CloseBtn">zamknij</button>
   `;
   document.body.appendChild(menu);
 
