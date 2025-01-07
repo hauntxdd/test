@@ -1,22 +1,23 @@
 (function() {
-  // 1. Dodaj style
+  /*************************************
+   * 1. Stwórz style i kontener menu
+   *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     /* Styl menu */
     #msp2Menu {
-      display: none;              /* Domyślnie ukryte */
-      width: 200px;
+      display: none;
+      width: 220px;
       padding: 10px;
       background-color: #f5f5f5;
       border: 2px solid #ccc;
       border-radius: 4px;
-      position: fixed;            /* stałe położenie */
+      position: fixed;
       top: 50px;
       left: 50px;
-      z-index: 9999;             /* żeby przykrywało inne elementy */
-      font-family: sans-serif;    /* przykład */
+      z-index: 9999;
+      font-family: sans-serif;
     }
-
     /* Przycisk otwierania/zamykania menu */
     #msp2ToggleBtn {
       position: fixed;
@@ -25,15 +26,13 @@
       z-index: 10000;
       padding: 5px 10px;
       cursor: pointer;
-      font-family: sans-serif;    /* przykład */
+      font-family: sans-serif;
     }
-
-    /* Nagłówek w menu */
+    /* Nagłówek menu */
     #msp2Menu h3 {
       margin: 0 0 10px 0;
     }
-
-    /* Przykładowe formatowanie etykiety od checkboxa */
+    /* Checkbox + label */
     #msp2Menu label {
       display: block;
       margin-top: 10px;
@@ -41,120 +40,113 @@
   `;
   document.head.appendChild(style);
 
-  // 2. Stwórz przycisk do otwierania/zamykania
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
   toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
   document.body.appendChild(toggleMenuBtn);
 
-  // 3. Stwórz kontener menu
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>Moje Menu</h3>
+    <h3>MSP2 - Wyłącz cenzurę</h3>
     <label>
-      <input type="checkbox" id="msp2CheckboxCensor" />
-      Wyłącz cenzurę (client-side)
-    </label>
-    <label>
-      <input type="checkbox" id="msp2CheckboxPatchChat" />
-      Patch czatu (wysyłanie + wyświetlanie)
+      <input type="checkbox" id="msp2CensorBypass" />
+      Włącz bypass (wyłącz cenzurę + patch czatu)
     </label>
   `;
   document.body.appendChild(menu);
 
-  // 4. Logika otwierania/zamykania
   let isMenuVisible = false;
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  // ========== 5. Wyłączanie cenzury w kliencie (sanitizeMessage) ==========
-  const checkboxCensor = document.getElementById('msp2CheckboxCensor');
+  /*************************************
+   * 2. Funkcja wstawiająca \u200B (ZWS)
+   *************************************/
+  function insertZeroWidthSpaces(text) {
+    // Wstawia \u200B między każdy znak
+    return [...text].join('\u200B');
+  }
 
-  checkboxCensor.addEventListener('change', () => {
-    if (checkboxCensor.checked) {
-      console.log('[MSP2] Wyłączanie cenzury w kliencie (sanitizeMessage).');
+  /**********************************************************
+   * 3. Jedna tablica na wszystkie ocenzurowane wiadomości
+   *    - Każde wysłanie wulgarnego słowa -> push do tablicy
+   *    - Każde przyjście "#####" -> shift z tablicy
+   **********************************************************/
+  const myLocalMessages = [];
 
-      if (typeof window.sanitizeMessage === 'function') {
-        window._originalSanitizeMessage = window.sanitizeMessage;
-        window.sanitizeMessage = function(text) {
-          console.log('[MSP2] Zwracam oryginalny tekst (cenzura OFF):', text);
-          return text;
-        };
-      } else {
-        console.warn('[MSP2] Nie znaleziono window.sanitizeMessage w kliencie.');
-      }
-    } else {
-      console.log('[MSP2] Przywracanie cenzury w kliencie.');
-      if (window._originalSanitizeMessage) {
-        window.sanitizeMessage = window._originalSanitizeMessage;
-        delete window._originalSanitizeMessage;
-      }
-    }
-  });
-
-  // ========== 6. Patch czatu (wysyłanie + wyświetlanie) ==========
-  const checkboxPatchChat = document.getElementById('msp2CheckboxPatchChat');
-
-  // Pamięć lokalna: mapuje ID lub "#####"/cokolwiek -> oryginalny tekst
-  const myLocalMessages = {};
-
-  // Oryginalne referencje
+  /*************************************
+   * 4. Zmienna do przechowywania oryginałów funkcji
+   *************************************/
+  let originalSanitizeMessage = null;
   let originalSendChatMessage = null;
   let originalDisplayChatMessage = null;
 
-  function installChatPatches() {
-    console.log('[MSP2] Instalujemy patch czatu...');
+  /*************************************
+   * 5. Funkcja instalująca cały bypass
+   *************************************/
+  function installBypass() {
+    console.log('[MSP2] Instaluję bypass cenzury...');
 
-    // --- Patch wysyłania (sendChatMessage) ---
-    if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
-      originalSendChatMessage = window.sendChatMessage;
-
-      window.sendChatMessage = function(text) {
-        console.log('[MSP2] Patch sendChatMessage - zapamiętuję oryginalny text:', text);
-
-        // Przyjmijmy, że serwer zwróci '#####' za każde wulgarne słowo.
-        // Zapisz do lokalnej mapy:
-        // kluczem będzie np. '#####' (jeśli serwer zawsze tak cenzuruje)
-        // ALE: to działa tylko dla Twoich własnych wiadomości.
-        // Wersja prosta: "#####": text
-        myLocalMessages['#####'] = text; 
-
-        // Wywołaj oryginał
-        return originalSendChatMessage.apply(this, arguments);
+    // A) Nadpisanie sanitizeMessage (wyłącz cenzurę kliencką)
+    if (typeof window.sanitizeMessage === 'function' && !originalSanitizeMessage) {
+      originalSanitizeMessage = window.sanitizeMessage;
+      window.sanitizeMessage = function(text) {
+        // Po prostu zwracamy oryginał
+        console.log('[MSP2] Cenzura client-side -> wyłączona dla:', text);
+        return text;
       };
-      console.log('[MSP2] sendChatMessage spatchowany.');
-    } else {
-      console.warn('[MSP2] Nie znaleziono sendChatMessage lub już spatchowane?');
+      console.log('[MSP2] sanitizeMessage spatchowany - cenzura off (client-side).');
     }
 
-    // --- Patch wyświetlania (displayChatMessage) ---
+    // B) Nadpisanie sendChatMessage (wstaw \u200B + zapisz oryginał do tablicy)
+    if (typeof window.sendChatMessage === 'function' && !originalSendChatMessage) {
+      originalSendChatMessage = window.sendChatMessage;
+      window.sendChatMessage = function(text) {
+        // 1) Wstawiamy znaki zero-width
+        const zwsText = insertZeroWidthSpaces(text);
+
+        // 2) Zapisujemy oryginał w tablicy
+        myLocalMessages.push(text);
+
+        console.log('[MSP2] Patch sendChatMessage -> Wysyłam:', zwsText, '| zapamiętuję oryginał:', text);
+        return originalSendChatMessage.call(this, zwsText);
+      };
+      console.log('[MSP2] sendChatMessage spatchowany (ZWS + localMessages).');
+    }
+
+    // C) Nadpisanie displayChatMessage (zamiana "#####" na oryginał z tablicy)
     if (typeof window.displayChatMessage === 'function' && !originalDisplayChatMessage) {
       originalDisplayChatMessage = window.displayChatMessage;
-
       window.displayChatMessage = function(userName, message) {
-        // Jesli serwer odesłał "#####", sprawdź, czy to nasza wiadomość
         if (message === '#####') {
-          // Zamień na oryginał, jeśli mamy w myLocalMessages
-          const original = myLocalMessages['#####'];
+          // Ściągamy pierwszy oryginał z kolejki
+          const original = myLocalMessages.shift();
           if (original) {
-            console.log('[MSP2] Patch: Zastępujemy ##### ->', original);
+            console.log('[MSP2] Patch displayChatMessage -> "#####" zamieniam na:', original);
             message = original;
           }
         }
-        // Wywołaj oryginalną funkcję
         return originalDisplayChatMessage.call(this, userName, message);
       };
-      console.log('[MSP2] displayChatMessage spatchowany.');
-    } else {
-      console.warn('[MSP2] Nie znaleziono displayChatMessage lub już spatchowane?');
+      console.log('[MSP2] displayChatMessage spatchowany (odcenzurowywanie w locie).');
     }
   }
 
-  function uninstallChatPatches() {
-    console.log('[MSP2] Usuwamy patch czatu...');
+  /*************************************
+   * 6. Funkcja usuwająca cały bypass
+   *************************************/
+  function uninstallBypass() {
+    console.log('[MSP2] Usuwam bypass cenzury...');
+
+    // Przywróć sanitizeMessage
+    if (originalSanitizeMessage) {
+      window.sanitizeMessage = originalSanitizeMessage;
+      originalSanitizeMessage = null;
+      console.log('[MSP2] Przywrócono oryginalne sanitizeMessage.');
+    }
 
     // Przywróć sendChatMessage
     if (originalSendChatMessage) {
@@ -169,13 +161,20 @@
       originalDisplayChatMessage = null;
       console.log('[MSP2] Przywrócono oryginalne displayChatMessage.');
     }
+
+    // Wyczyść tablicę
+    myLocalMessages.length = 0;
   }
 
-  checkboxPatchChat.addEventListener('change', () => {
-    if (checkboxPatchChat.checked) {
-      installChatPatches();
+  /*********************************************************
+   * 7. Jedyny checkbox do włączania/wyłączania bypassu
+   *********************************************************/
+  const bypassCheckbox = document.getElementById('msp2CensorBypass');
+  bypassCheckbox.addEventListener('change', () => {
+    if (bypassCheckbox.checked) {
+      installBypass();
     } else {
-      uninstallChatPatches();
+      uninstallBypass();
     }
   });
 })();
