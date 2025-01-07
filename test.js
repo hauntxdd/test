@@ -98,17 +98,18 @@
     }
 
     .tree-column h4 {
-      position: absolute;
-      top: 0;
-      left: 10px;
-      transform: translateY(-50%);
-      background-color: #121212;
-      padding: 0 8px;
+      font-size: 0.9em;
+      font-weight: bold;
+      padding: 2px 8px;
+      background-color: #1c1c1c;
       color: #d1d1d1;
-      font-size: 1.1em;
-      text-align: left;
+      position: relative;
+      top: -10px;
       margin: 0;
+      border: 1px solid #2a2a2a;
       border-radius: 4px;
+      width: fit-content;
+      text-align: center;
     }
 
     .tree-item {
