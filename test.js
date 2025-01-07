@@ -3,7 +3,7 @@
    * 1. Dodaj style i menu
    *************************************/
   const style = document.createElement('style');
-  style.innerHTML = 
+  style.innerHTML = `
     #msp2Menu {
       display: none;
       width: 200px;
@@ -33,7 +33,7 @@
       display: block;
       margin-top: 10px;
     }
-  ;
+  `;
   document.head.appendChild(style);
 
   // Przycisk do otwierania/zamykania menu
@@ -69,7 +69,6 @@
 
   // Funkcja wstawiająca \u200B pomiędzy każdą literę
   function insertZeroWidthSpaces(str) {
-    // Rozbij tekst na pojedyncze ‘znaki’ i między każdą parę wstaw \u200B
     return [...str].join('\u200B');
   }
 
