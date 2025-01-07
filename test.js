@@ -1,129 +1,47 @@
 (function () {
-  /**************************************
-   * 1. Dodanie menu i stylów w stylu Primordial UI z checkboxami po lewej stronie
+  /*************************************
+   * 1. Dodanie menu i stylów
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
     #msp2Menu {
       display: none;
-      width: 400px;
-      padding: 25px;
-      background-color: #121212; /* Głęboki czarny odcień */
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
+      width: 200px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border: 2px solid #ccc;
+      border-radius: 4px;
       position: fixed;
       top: 50px;
       left: 50px;
       z-index: 9999;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #f0f0f0; /* Jasno biały tekst */
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      font-family: sans-serif;
     }
-
-    #msp2Menu h3 {
-      color: #d1d1d1; /* Szary odcień */
-      font-size: 1.7em;
-      margin-bottom: 20px;
-      text-align: center;
-      border-bottom: 1px solid #2a2a2a;
-      padding-bottom: 10px;
-    }
-
-    #msp2Menu label {
-      display: flex;
-      align-items: center;
-      margin: 15px 0;
-      padding: 10px;
-      background-color: #1c1c1c;
-      border-radius: 6px;
-      border: 1px solid #2a2a2a;
-    }
-
-    #msp2Menu label span {
-      margin-left: 10px;
-      font-size: 1.1em;
-    }
-
-    #msp2Menu input[type="checkbox"] {
-      margin-right: 10px;
-      width: 20px;
-      height: 20px;
-      accent-color: #007acc; /* Niebieski odcień */
-    }
-
     #msp2ToggleBtn {
       position: fixed;
       top: 10px;
       left: 10px;
       z-index: 10000;
-      padding: 12px 18px;
-      background-color: #007acc; /* Niebieski */
-      border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 18px;
+      padding: 5px 10px;
       cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      transition: background-color 0.3s, transform 0.2s;
-    }
-
-    #msp2ToggleBtn:hover {
-      background-color: #005a9e; /* Ciemniejszy niebieski */
-      transform: scale(1.05);
-    }
-
-    #msp2CloseBtn {
-      margin-top: 20px;
-      padding: 12px 18px;
-      background-color: #007acc;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      width: 100%;
-      transition: background-color 0.3s;
-    }
-
-    #msp2CloseBtn:hover {
-      background-color: #005a9e;
-    }
-
-    .menu-section {
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-
-    .menu-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 1.2em;
-      color: #d1d1d1;
-      text-align: center;
+      font-family: sans-serif;
     }
   `;
   document.head.appendChild(style);
 
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
-  toggleMenuBtn.textContent = '⚙️ menu';
+  toggleMenuBtn.textContent = 'Otwórz/Zamknij menu';
   document.body.appendChild(toggleMenuBtn);
 
   const menu = document.createElement('div');
   menu.id = 'msp2Menu';
   menu.innerHTML = `
-    <h3>🛠️ made by a</h3>
-    <div class="menu-section">
-      <h4>opcje</h4>
-      <label>
-        <input type="checkbox" id="msp2CheckboxBypass"/>
-        <span>wylacz filtr chatu</span>
-      </label>
-    </div>
-    <button id="msp2CloseBtn">zamknij</button>
+    <h3>Bypass MSP2</h3>
+    <label>
+      <input type="checkbox" id="msp2CheckboxBypass"/>
+      Włącz Unicode w wiadomościach
+    </label>
   `;
   document.body.appendChild(menu);
 
@@ -131,12 +49,6 @@
   toggleMenuBtn.addEventListener('click', () => {
     isMenuVisible = !isMenuVisible;
     menu.style.display = isMenuVisible ? 'block' : 'none';
-  });
-
-  const closeMenuBtn = document.getElementById('msp2CloseBtn');
-  closeMenuBtn.addEventListener('click', () => {
-    menu.style.display = 'none';
-    isMenuVisible = false;
   });
 
   let bypassEnabled = false;
