@@ -55,7 +55,7 @@ export function createMenu() {
   
     const toggleMenuBtn = document.createElement('button');
     toggleMenuBtn.id = 'msp2ToggleBtn';
-    toggleMenuBtn.textContent = '🛠️ Otwórz/Zamknij menu';
+    toggleMenuBtn.textContent = 'menu';
     document.body.appendChild(toggleMenuBtn);
   
     const menu = document.createElement('div');
