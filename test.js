@@ -1,6 +1,6 @@
 (function () {
   /*************************************
-   * 1. Dodaj styl i menu
+   * 1. Dodanie menu i stylów
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
@@ -40,7 +40,7 @@
     <h3>Bypass MSP2</h3>
     <label>
       <input type="checkbox" id="msp2CheckboxBypass"/>
-      Wstaw Unicode tylko do wiadomości tekstowych
+      Włącz Unicode w wiadomościach
     </label>
   `;
   document.body.appendChild(menu);
@@ -54,44 +54,48 @@
   let bypassEnabled = false;
 
   /*************************************
-   * 2. Funkcja wstawiania Unicode do wiadomości
+   * 2. Funkcja wstawiania znaków Unicode
    *************************************/
   function insertUnicode(text) {
     if (typeof text === 'string' && text.trim().length > 1) {
-      return [...text].join('\u200B'); // Wstaw Unicode (\u200B) między każdą literą
+      return [...text].join('\u200B'); // Dodanie znaku zerowej szerokości między literami
     }
     return text;
   }
 
   /*************************************
-   * 3. Patch WebSocket
+   * 3. Modyfikacja WebSocket.send
    *************************************/
   const originalWebSocketSend = WebSocket.prototype.send;
 
   WebSocket.prototype.send = function (data) {
-    try {
-      if (bypassEnabled && typeof data === 'string') {
+    console.log('[MSP2] WebSocket -> Oryginalne dane:', data);
+
+    if (bypassEnabled && typeof data === 'string') {
+      try {
         const parsed = JSON.parse(data);
 
-        // Modyfikuj tylko wiadomości tekstowe
-        if (parsed[1] && typeof parsed[1] === 'object' && parsed[1].messageContent) {
-          console.log('[MSP2] Oryginalna wiadomość:', parsed[1].messageContent);
-          parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
-          console.log('[MSP2] Zmieniona wiadomość:', parsed[1].messageContent);
+        // Przetwarzaj tylko wiadomości, które mogą zawierać tekst
+        if (parsed && Array.isArray(parsed) && parsed.length > 1 && typeof parsed[1] === 'object') {
+          if (parsed[1].messageContent) {
+            console.log('[MSP2] Znaleziono wiadomość tekstową:', parsed[1].messageContent);
+            parsed[1].messageContent = insertUnicode(parsed[1].messageContent);
+            console.log('[MSP2] Po przekształceniu:', parsed[1].messageContent);
+          }
         }
 
-        data = JSON.stringify(parsed); // Przekształcenie z powrotem do JSON
+        data = JSON.stringify(parsed); // Zamiana na string JSON
+      } catch (e) {
+        console.warn('[MSP2] Niepoprawny JSON lub inne dane:', data);
       }
-    } catch (e) {
-      console.warn('[MSP2] Niepoprawny JSON lub inne dane:', data);
     }
 
     console.log('[MSP2] WebSocket wysyła dane:', data);
-    return originalWebSocketSend.apply(this, arguments); // Wywołanie oryginalnej funkcji
+    return originalWebSocketSend.call(this, data);
   };
 
   /*************************************
-   * 4. Obsługa checkboxa w menu
+   * 4. Obsługa checkboxa
    *************************************/
   const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
   bypassCheckbox.addEventListener('change', () => {
