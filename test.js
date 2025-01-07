@@ -1,125 +1,151 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu i stylów w stylu Primordial UI
+   * 1. Dodanie menu UI w stylu Primordial
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
-    #msp2Menu {
+    #primordialMenu {
       display: none;
-      width: 400px;
-      padding: 25px;
-      background-color: #121212; /* Głęboki czarny odcień */
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
+      width: 500px;
+      padding: 30px;
+      background-color: #181818;
+      border: 1px solid #333333;
+      border-radius: 12px;
       position: fixed;
-      top: 50px;
-      left: 50px;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 9999;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #f0f0f0; /* Jasno biały tekst */
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      color: #f5f5f5;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
     }
 
-    #msp2Menu h3 {
-      color: #d1d1d1; /* Szary odcień */
-      font-size: 1.7em;
-      margin-bottom: 20px;
+    #primordialMenu h3 {
+      color: #c0c0c0;
+      font-size: 1.8em;
       text-align: center;
-      border-bottom: 1px solid #2a2a2a;
-      padding-bottom: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #333333;
+      padding-bottom: 12px;
     }
 
-    #msp2Menu label {
+    #primordialMenu label {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 15px 0;
+      margin: 10px 0;
       padding: 10px;
-      background-color: #1c1c1c;
+      background-color: #222222;
       border-radius: 6px;
-      border: 1px solid #2a2a2a;
+      border: 1px solid #333333;
     }
 
-    #msp2Menu input[type="checkbox"] {
+    #primordialMenu input[type="checkbox"] {
       margin-left: 10px;
       width: 24px;
       height: 24px;
-      accent-color: #007acc; /* Niebieski odcień */
+      accent-color: #ff007a; /* Customowy kolor */
     }
 
-    #msp2ToggleBtn {
+    #primordialToggleBtn {
       position: fixed;
       top: 10px;
       left: 10px;
       z-index: 10000;
-      padding: 12px 18px;
-      background-color: #007acc; /* Niebieski */
+      padding: 15px 20px;
+      background-color: #6e00ff; /* Fiolet */
       border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 18px;
+      border-radius: 10px;
+      color: white;
+      font-size: 20px;
       cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      transition: background-color 0.3s, transform 0.2s;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: background-color 0.4s, transform 0.2s;
     }
 
-    #msp2ToggleBtn:hover {
-      background-color: #005a9e; /* Ciemniejszy niebieski */
+    #primordialToggleBtn:hover {
+      background-color: #5200b2; /* Ciemniejszy fiolet */
       transform: scale(1.05);
     }
 
-    #msp2CloseBtn {
+    #primordialCloseBtn {
       margin-top: 20px;
-      padding: 12px 18px;
-      background-color: #007acc;
+      padding: 14px 20px;
+      background-color: #ff007a;
       border: none;
       color: white;
       border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
+      cursor: pointer;
       width: 100%;
-      transition: background-color 0.3s;
+      transition: background-color 0.4s;
     }
 
-    #msp2CloseBtn:hover {
-      background-color: #005a9e;
+    #primordialCloseBtn:hover {
+      background-color: #b2005d;
     }
 
     .menu-section {
-      border: 1px solid #2a2a2a;
+      border: 1px solid #444444;
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 20px;
     }
 
     .menu-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 1.2em;
-      color: #d1d1d1;
+      margin-bottom: 12px;
+      font-size: 1.4em;
+      color: #b0b0b0;
       text-align: center;
     }
   `;
   document.head.appendChild(style);
 
   const toggleMenuBtn = document.createElement('button');
-  toggleMenuBtn.id = 'msp2ToggleBtn';
-  toggleMenuBtn.textContent = '⚙️ Menu';
+  toggleMenuBtn.id = 'primordialToggleBtn';
+  toggleMenuBtn.textContent = '⚙️ Otwórz menu';
   document.body.appendChild(toggleMenuBtn);
 
   const menu = document.createElement('div');
-  menu.id = 'msp2Menu';
+  menu.id = 'primordialMenu';
   menu.innerHTML = `
-    <h3>🛠️ Bypass Chat Filter</h3>
+    <h3>⚙️ Primordial Menu</h3>
     <div class="menu-section">
-      <h4>Opcje</h4>
+      <h4>Ustawienia Widoku</h4>
       <label>
-        <span>Włącz Unicode w wiadomościach</span>
-        <input type="checkbox" id="msp2CheckboxBypass"/>
+        <span>Render FOV (Kąt widzenia)</span>
+        <input type="range" id="fovSlider" min="0" max="180" step="5" value="90"/>
+      </label>
+      <label>
+        <span>Viewmodel Offset</span>
+        <input type="checkbox" id="viewOffsetToggle"/>
       </label>
     </div>
-    <button id="msp2CloseBtn">Zamknij</button>
+    <div class="menu-section">
+      <h4>Usuwanie efektów</h4>
+      <label>
+        <span>Usuń Dym</span>
+        <input type="checkbox" id="removeSmokeToggle"/>
+      </label>
+      <label>
+        <span>Usuń Flash</span>
+        <input type="checkbox" id="removeFlashToggle"/>
+      </label>
+    </div>
+    <div class="menu-section">
+      <h4>Efekty Wizualne</h4>
+      <label>
+        <span>Zmniejszone światło</span>
+        <input type="checkbox" id="dimLightsToggle"/>
+      </label>
+      <label>
+        <span>Tryb klauna (kolorowe efekty)</span>
+        <input type="checkbox" id="clownModeToggle"/>
+      </label>
+    </div>
+    <button id="primordialCloseBtn">Zamknij Menu</button>
   `;
   document.body.appendChild(menu);
 
@@ -129,7 +155,7 @@
     menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
-  const closeMenuBtn = document.getElementById('msp2CloseBtn');
+  const closeMenuBtn = document.getElementById('primordialCloseBtn');
   closeMenuBtn.addEventListener('click', () => {
     menu.style.display = 'none';
     isMenuVisible = false;
