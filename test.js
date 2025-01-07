@@ -177,6 +177,7 @@
   const closeMenuBtn = document.getElementById('primordialCloseBtn');
   closeMenuBtn.addEventListener('click', () => {
     menu.style.display = 'none';
+    isMenuVisible = false;
   });
 
   let bypassEnabled = false;
