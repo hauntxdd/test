@@ -1,6 +1,6 @@
 (function () {
   /*************************************
-   * 1. Dodanie menu i stylów w stylu Primordial UI z zakładkami i przesuwaniem
+   * 1. Dodanie menu i stylów w stylu Primordial UI z zakładkami, dwoma kolumnami i możliwością przesuwania
    *************************************/
   const style = document.createElement('style');
   style.innerHTML = `
@@ -12,35 +12,44 @@
       background-color: #121212;
       border: 1px solid #2a2a2a;
       border-radius: 10px;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      position: absolute;
+      top: 50px;
+      left: 50px;
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #f0f0f0;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
       cursor: move;
-      overflow: auto;
+      overflow: hidden;
     }
 
     #msp2Menu h3 {
-      text-align: center;
+      color: #d1d1d1;
+      font-size: 1.4em;
       margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 1px solid #2a2a2a;
+      padding-bottom: 10px;
+      user-select: none;
     }
 
     .tabs {
       display: flex;
       justify-content: center;
       border-bottom: 1px solid #2a2a2a;
+      margin-bottom: 15px;
     }
 
     .tab {
-      padding: 10px 15px;
+      flex: 1;
+      text-align: center;
+      padding: 8px;
       cursor: pointer;
-      background-color: #1c1c1c;
       color: #d1d1d1;
-      border-radius: 6px 6px 0 0;
+      background-color: #1c1c1c;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      font-size: 0.9em;
     }
 
     .tab.active {
@@ -50,11 +59,74 @@
 
     .tab-content {
       display: none;
+      height: calc(100% - 110px);
+      padding-bottom: 50px;
+      box-sizing: border-box;
     }
 
     .tab-content.active {
       display: flex;
+      justify-content: space-between;
       gap: 20px;
+      height: calc(100% - 100px);
+    }
+
+    .tree-column-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #2a2a2a;
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      outline: 1px solid #2a2a2a;
+    }
+
+    .tree-column {
+      flex: 1;
+      padding: 10px;
+      background-color: #1c1c1c;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      outline: 1px solid #2a2a2a;
+      position: relative;
+    }
+
+    .tree-column h4 {
+      font-size: 0.9em;
+      font-weight: bold;
+      padding: 2px 8px;
+      background-color: #1c1c1c;
+      color: #d1d1d1;
+      position: relative;
+      top: -10px;
+      margin: 0;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      width: fit-content;
+      text-align: center;
+    }
+
+    .tree-item {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #2b2b2b;
+      border-radius: 6px;
+      border: 1px solid #3a3a3a;
+    }
+
+    .tree-item label {
+      display: flex;
+      align-items: center;
+    }
+
+    .tree-item input[type="checkbox"] {
+      margin-right: 10px;
     }
 
     #msp2ToggleBtn {
@@ -64,36 +136,33 @@
       z-index: 10000;
       padding: 10px 16px;
       background-color: #007acc;
-      color: white;
       border: none;
       border-radius: 8px;
+      color: #ffffff;
+      font-size: 16px;
       cursor: pointer;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transition: background-color 0.3s, transform 0.2s;
     }
 
     #msp2ToggleBtn:hover {
       background-color: #005a9e;
+      transform: scale(1.05);
     }
 
-    #msp2CloseBtn {
-      margin-top: 15px;
-      padding: 10px 16px;
-      background-color: #007acc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    #msp2CloseBtn:hover {
-      background-color: #005a9e;
+    .footer {
+      text-align: right;
+      font-size: 0.8em;
+      color: #888;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      user-select: none;
     }
   `;
   document.head.appendChild(style);
 
-  /*************************************
-   * 2. Tworzenie menu i przycisku
-   *************************************/
   const toggleMenuBtn = document.createElement('button');
   toggleMenuBtn.id = 'msp2ToggleBtn';
   toggleMenuBtn.textContent = '⚙️ Menu';
@@ -111,40 +180,64 @@
     <div class="tab-content active" id="misc">
       <div class="tree-column-container">
         <div class="tree-column">
-          <h4>Misc Options - Left</h4>
+          <h4>Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" id="msp2CheckboxBypass" /> Turn off chat filter</label>
           </div>
+          <div class="tree-item">
+            <label><input type="checkbox" /> Misc Option 1</label>
+          </div>
         </div>
         <div class="tree-column">
-          <h4>Misc Options - Right</h4>
+          <h4>Additional Settings</h4>
           <div class="tree-item">
             <label><input type="checkbox" /> Misc Option 2</label>
+          </div>
+          <div class="tree-item">
+            <label><input type="checkbox" /> Misc Option 3</label>
           </div>
         </div>
       </div>
     </div>
     <div class="tab-content" id="profile">
-      <h4>Profile Options</h4>
-      <div class="tree-item">
-        <label><input type="checkbox" /> Profile Option 1</label>
+      <div class="tree-column-container">
+        <div class="tree-column">
+          <h4>Profile Settings</h4>
+          <div class="tree-item">
+            <label><input type="checkbox" /> Profile Option 1</label>
+          </div>
+        </div>
+        <div class="tree-column">
+          <h4>Other Profile Settings</h4>
+          <div class="tree-item">
+            <label><input type="checkbox" /> Profile Option 2</label>
+          </div>
+        </div>
       </div>
     </div>
     <div class="tab-content" id="autoquiz">
-      <h4>AutoQuiz Options</h4>
-      <div class="tree-item">
-        <label><input type="checkbox" /> AutoQuiz Question 1</label>
+      <div class="tree-column-container">
+        <div class="tree-column">
+          <h4>Quiz Options</h4>
+          <div class="tree-item">
+            <label><input type="checkbox" /> AutoQuiz Question 1</label>
+          </div>
+        </div>
+        <div class="tree-column">
+          <h4>Other Quiz Options</h4>
+          <div class="tree-item">
+            <label><input type="checkbox" /> AutoQuiz Question 2</label>
+          </div>
+        </div>
       </div>
     </div>
-    <button id="msp2CloseBtn">Zamknij</button>
+    <div class="footer">Made by kokaina</div>
   `;
   document.body.appendChild(menu);
 
-  /*************************************
-   * 3. Funkcje zarządzania menu
-   *************************************/
+  let isMenuVisible = false;
+  let offsetX, offsetY;
   let isDragging = false;
-  let offsetX = 0, offsetY = 0;
 
   menu.addEventListener('mousedown', (e) => {
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
@@ -156,12 +249,8 @@
 
   document.addEventListener('mousemove', (e) => {
     if (isDragging) {
-      let newX = e.clientX - offsetX;
-      let newY = e.clientY - offsetY;
-      const maxX = window.innerWidth - menu.offsetWidth;
-      const maxY = window.innerHeight - menu.offsetHeight;
-      menu.style.left = `${Math.max(0, Math.min(maxX, newX))}px`;
-      menu.style.top = `${Math.max(0, Math.min(maxY, newY))}px`;
+      menu.style.left = `${e.clientX - offsetX}px`;
+      menu.style.top = `${e.clientY - offsetY}px`;
     }
   });
 
@@ -170,11 +259,8 @@
   });
 
   toggleMenuBtn.addEventListener('click', () => {
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-  });
-
-  document.getElementById('msp2CloseBtn').addEventListener('click', () => {
-    menu.style.display = 'none';
+    isMenuVisible = !isMenuVisible;
+    menu.style.display = isMenuVisible ? 'block' : 'none';
   });
 
   const tabs = document.querySelectorAll('.tab');
@@ -191,27 +277,12 @@
   });
 
   /*************************************
-   * 4. WebSocket modyfikacja
+   * 2. Funkcja wstawiania znaków Unicode
    *************************************/
-  let bypassEnabled = false;
-  const originalWebSocketSend = WebSocket.prototype.send;
-
-  WebSocket.prototype.send = function (data) {
-    if (bypassEnabled && typeof data === 'string' && data.startsWith('42')) {
-      try {
-        const parsed = JSON.parse(data.substring(data.indexOf('[')));
-        if (parsed[0] === 'chatv2:send' && parsed[1]?.message) {
-          parsed[1].message = [...parsed[1].message].join('\u200B');
-          data = `42${JSON.stringify(parsed)}`;
-        }
-      } catch (e) {
-        console.error('[MSP2] Błąd parsowania:', e);
-      }
+  function insertUnicode(text) {
+    if (typeof text === 'string' && text.trim().length > 1) {
+      return [...text].join('\u200B');
     }
-    originalWebSocketSend.call(this, data);
-  };
-
-  document.getElementById('msp2CheckboxBypass').addEventListener('change', (e) => {
-    bypassEnabled = e.target.checked;
-  });
+    return text;
+  }
 })();
