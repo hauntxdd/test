@@ -13,8 +13,9 @@
       border: 1px solid #2a2a2a;
       border-radius: 10px;
       position: absolute;
-      top: 50px;
-      left: 50px;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #f0f0f0;
@@ -177,11 +178,11 @@
   menu.innerHTML = `
     <h3>🛠️ Bypass Chat Filter</h3>
     <div class="tabs">
-      <div class="tab active" data-tab="misc">Misc</div>
-      <div class="tab" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="misc">Misc</div>
+      <div class="tab active" data-tab="profile">Profile</div>
       <div class="tab" data-tab="autoquiz">AutoQuiz</div>
     </div>
-    <div class="tab-content active" id="misc">
+    <div class="tab-content" id="misc">
       <div class="tree-column-container">
         <div class="tree-column">
           <h4>Settings</h4>
@@ -192,28 +193,12 @@
             <label><input type="checkbox" /> Misc Option 1</label>
           </div>
         </div>
-        <div class="tree-column">
-          <h4>Additional Settings</h4>
-          <div class="profile-picture-container">
-            <span>Your MSP Avatar</span>
-          </div>
-          <div class="button-group">
-            <button id="selectPictureButton">Select Image</button>
-            <button id="changePictureButton">Change</button>
-          </div>
-        </div>
       </div>
     </div>
-    <div class="tab-content" id="profile">
+    <div class="tab-content active" id="profile">
       <div class="tree-column-container">
         <div class="tree-column">
           <h4>Profile Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Profile Option 1</label>
-          </div>
-        </div>
-        <div class="tree-column">
-          <h4>Other Profile Settings</h4>
           <div class="profile-picture-container">
             <span>Your MSP Avatar</span>
           </div>
@@ -289,7 +274,16 @@
    * 2. Obsługa przycisków do zmiany obrazu
    *************************************/
   document.getElementById('selectPictureButton').addEventListener('click', () => {
-    alert('Select a new image (functionality pending implementation).');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg, image/png';
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        alert(`Selected file: ${file.name}`);
+      }
+    });
+    input.click();
   });
 
   document.getElementById('changePictureButton').addEventListener('click', () => {
