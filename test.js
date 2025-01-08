@@ -15,7 +15,7 @@
   
         // Ładowanie plików skryptów z repozytorium lub lokalnych ścieżek
         await loadScript('https://raw.githubusercontent.com/hauntxdd/test/main/utils/menu.js');
-        await loadScript('https://raw.githubusercontent.com/hauntxdd/test/main/features/bypassfilterchat.js');
+        await loadScript('https://raw.githubusercontent.com/hauntxdd/test/main/features/bypass_filter_chat.js');
   
         console.log('[MSP2] Tworzenie menu...');
         window.msp2Menu.createMenu();
