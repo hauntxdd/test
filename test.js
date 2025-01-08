@@ -13,8 +13,9 @@
       border: 1px solid #2a2a2a;
       border-radius: 10px;
       position: absolute;
-      top: 50px;
-      left: 50px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #f0f0f0;
@@ -73,7 +74,7 @@
 
     .tree-column-container {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       gap: 20px;
       width: 100%;
       padding: 10px;
@@ -84,71 +85,36 @@
       outline: 1px solid #2a2a2a;
     }
 
-    .tree-column {
-      flex: 1;
-      padding: 10px;
-      background-color: #1c1c1c;
-      border-radius: 6px;
-      border: 1px solid #2a2a2a;
+    .autoquiz-controls {
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      outline: 1px solid #2a2a2a;
-      position: relative;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
     }
 
-    .tree-column h4 {
-      font-size: 0.9em;
-      font-weight: bold;
-      padding: 2px 8px;
+    .autoquiz-controls input {
+      padding: 6px;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
       background-color: #1c1c1c;
-      color: #d1d1d1;
-      position: relative;
-      top: -10px;
-      margin: 0;
-      border: 1px solid #2a2a2a;
-      border-radius: 4px;
-      width: fit-content;
+      color: white;
+      width: 100%;
       text-align: center;
     }
 
-    .tree-item {
-      margin: 10px 0;
-      padding: 10px;
-      background-color: #2b2b2b;
-      border-radius: 6px;
-      border: 1px solid #3a3a3a;
-    }
-
-    .tree-item label {
-      display: flex;
-      align-items: center;
-    }
-
-    .tree-item input[type="checkbox"] {
-      margin-right: 10px;
-    }
-
-    #msp2ToggleBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10000;
-      padding: 10px 16px;
+    .autoquiz-controls button {
+      padding: 10px 20px;
       background-color: #007acc;
       border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 16px;
+      border-radius: 6px;
+      color: white;
       cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      transition: background-color 0.3s, transform 0.2s;
+      transition: background-color 0.3s;
     }
 
-    #msp2ToggleBtn:hover {
+    .autoquiz-controls button:hover {
       background-color: #005a9e;
-      transform: scale(1.05);
     }
 
     .footer {
@@ -207,28 +173,14 @@
             <label><input type="checkbox" /> Profile Option 1</label>
           </div>
         </div>
-        <div class="tree-column">
-          <h4>Other Profile Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Profile Option 2</label>
-          </div>
-        </div>
       </div>
     </div>
     <div class="tab-content" id="autoquiz">
-      <div class="tree-column-container">
-        <div class="tree-column">
-          <h4>Quiz Options</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> AutoQuiz Question 1</label>
-          </div>
-        </div>
-        <div class="tree-column">
-          <h4>Other Quiz Options</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> AutoQuiz Question 2</label>
-          </div>
-        </div>
+      <div class="autoquiz-controls">
+        <h4>Automatic Quiz Controls</h4>
+        <input type="text" id="languageInput" placeholder="Enter language code (e.g., sv_SE)" />
+        <button id="startQuizButton">Start Quiz</button>
+        <p id="quizStatus">Status: Waiting to start...</p>
       </div>
     </div>
     <div class="footer">Made by kokaina</div>
@@ -346,5 +298,97 @@
     bypassEnabled = bypassCheckbox.checked;
     console.log(`[MSP2] Bypass Unicode ${bypassEnabled ? 'włączony' : 'wyłączony'}`);
   });
-})();
 
+  /*************************************
+   * 5. Obsługa AutoQuiz
+   *************************************/
+  document.getElementById('startQuizButton').addEventListener('click', () => {
+    const lang = document.getElementById('languageInput').value.trim();
+    if (!lang) {
+      alert('Please enter a valid language code.');
+      return;
+    }
+    init(lang);
+  });
+
+  let sockets = [];
+  let answers = {};
+  let localization = {};
+
+  function init(lang) {
+    document.getElementById('quizStatus').textContent = `Status: Loading localization data...`;
+    get(`https://msp2-static.mspcdns.com/translations/multiplayergames/quiz/${lang}/localization_data.txt`, 'text',
+      function (err, data) {
+        if (err !== null) {
+          alert('Something went wrong: ' + err);
+        } else {
+          localization = {};
+          data.split("\r").forEach(d => {
+            if (d.includes("ANSWER")) {
+              let match = /Q(\d{0,4})_ANSWER(\d)=(.+)/g.exec(d);
+              let questionID = match[1];
+              let answerIndex = match[2];
+              let answerText = match[3];
+              if (!localization.hasOwnProperty(questionID)) {
+                localization[questionID] = {};
+              }
+              localization[questionID][answerIndex - 1] = answerText;
+            }
+          });
+          get('https://raw.githubusercontent.com/LiterallyFabian/auto-starquiz/master/answers.json', 'json',
+            function (err, data) {
+              if (err !== null) {
+                alert('Something went wrong: ' + err);
+              } else {
+                answers = data;
+                sockets = [];
+                const nativeWebSocket = window.WebSocket;
+                window.WebSocket = function (...args) {
+                  const socket = new nativeWebSocket(...args);
+                  sockets.push(socket);
+                  return socket;
+                };
+                document.getElementById('quizStatus').textContent = `Status: Waiting for game...`;
+                checkSockets();
+              }
+            });
+        }
+      });
+  }
+
+  function checkSockets() {
+    if (sockets.length === 0) {
+      window.setTimeout(checkSockets, 100);
+    } else {
+      document.getElementById('quizStatus').textContent = `Status: Game found. Listening...`;
+      runGame(sockets[0]);
+    }
+  }
+
+  function runGame(ws) {
+    ws.addEventListener('message', function (event) {
+      let match = /42.+quiz:chal.+QUIZ_.+Q(\d{0,3})_QUESTION/gm.exec(event.data);
+      if (match != null) {
+        let id = match[1];
+        let ans = answers[id];
+        const answerText = localization[id] ? localization[id][ans] : 'No answer available';
+        document.getElementById('quizStatus').textContent = `Answer: ${answerText}`;
+        console.log(`%cAnswer: ${answerText}`, "color: red; font-size: 1.5em;");
+      }
+    });
+  }
+
+  function get(url, responseType, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = responseType;
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(xhr.status, xhr.response);
+      }
+    };
+    xhr.send();
+  }
+})();
