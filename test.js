@@ -93,23 +93,58 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      align-items: center;
       outline: 1px solid #2a2a2a;
       position: relative;
     }
 
     .tree-column h4 {
-      font-size: 0.85em; /* Zmniejszenie czcionki */
+      font-size: 0.85em;
       font-weight: bold;
-      padding: 4px 12px; /* Dopasowanie marginesów */
+      padding: 4px 12px;
       background-color: #1c1c1c;
       color: #d1d1d1;
-      position: absolute;
-      top: -12px;
-      left: 10px; /* Wyśrodkowanie względem szerokości kolumny */
-      margin: 0;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       text-align: center;
+    }
+
+    .profile-picture-container {
+      width: 100%;
+      height: 200px;
+      background-color: #2b2b2b;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-size: 0.9em;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 8px;
+      background-color: #007acc;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .button-group button:hover {
+      background-color: #005a9e;
     }
 
     .tree-item {
@@ -118,37 +153,6 @@
       background-color: #2b2b2b;
       border-radius: 6px;
       border: 1px solid #3a3a3a;
-    }
-
-    .tree-item label {
-      display: flex;
-      align-items: center;
-    }
-
-    .tree-item input[type="checkbox"] {
-      margin-right: 10px;
-    }
-
-    #msp2ToggleBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10000;
-      padding: 10px 16px;
-      background-color: #007acc;
-      border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 16px;
-      cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      transition: background-color 0.3s, transform 0.2s;
-    }
-
-    #msp2ToggleBtn:hover {
-      background-color: #005a9e;
-      transform: scale(1.05);
     }
 
     .footer {
@@ -190,11 +194,12 @@
         </div>
         <div class="tree-column">
           <h4>Additional Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Misc Option 2</label>
+          <div class="profile-picture-container">
+            <span>Your MSP Avatar</span>
           </div>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Misc Option 3</label>
+          <div class="button-group">
+            <button id="selectPictureButton">Select Image</button>
+            <button id="changePictureButton">Change</button>
           </div>
         </div>
       </div>
@@ -209,8 +214,12 @@
         </div>
         <div class="tree-column">
           <h4>Other Profile Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Profile Option 2</label>
+          <div class="profile-picture-container">
+            <span>Your MSP Avatar</span>
+          </div>
+          <div class="button-group">
+            <button id="selectPictureButton">Select Image</button>
+            <button id="changePictureButton">Change</button>
           </div>
         </div>
       </div>
@@ -274,6 +283,17 @@
       tab.classList.add('active');
       document.getElementById(tab.dataset.tab).classList.add('active');
     });
+  });
+
+  /*************************************
+   * 2. Obsługa przycisków do zmiany obrazu
+   *************************************/
+  document.getElementById('selectPictureButton').addEventListener('click', () => {
+    alert('Select a new image (functionality pending implementation).');
+  });
+
+  document.getElementById('changePictureButton').addEventListener('click', () => {
+    alert('Change profile picture functionality placeholder.');
   });
 
   let bypassEnabled = false;
