@@ -13,8 +13,9 @@
       border: 1px solid #2a2a2a;
       border-radius: 10px;
       position: absolute;
-      top: 50px;
-      left: 50px;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
       z-index: 9999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #f0f0f0;
@@ -93,23 +94,58 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      align-items: center;
       outline: 1px solid #2a2a2a;
       position: relative;
     }
 
     .tree-column h4 {
-      font-size: 0.9em;
+      font-size: 0.85em;
       font-weight: bold;
-      padding: 2px 8px;
+      padding: 4px 12px;
       background-color: #1c1c1c;
       color: #d1d1d1;
-      position: relative;
-      top: -10px;
-      margin: 0;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
-      width: fit-content;
       text-align: center;
+    }
+
+    .profile-picture-container {
+      width: 100%;
+      height: 200px;
+      background-color: #2b2b2b;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-size: 0.9em;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .button-group button {
+      flex: 1;
+      padding: 8px;
+      background-color: #007acc;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .button-group button:hover {
+      background-color: #005a9e;
     }
 
     .tree-item {
@@ -118,37 +154,6 @@
       background-color: #2b2b2b;
       border-radius: 6px;
       border: 1px solid #3a3a3a;
-    }
-
-    .tree-item label {
-      display: flex;
-      align-items: center;
-    }
-
-    .tree-item input[type="checkbox"] {
-      margin-right: 10px;
-    }
-
-    #msp2ToggleBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10000;
-      padding: 10px 16px;
-      background-color: #007acc;
-      border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 16px;
-      cursor: pointer;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-      transition: background-color 0.3s, transform 0.2s;
-    }
-
-    #msp2ToggleBtn:hover {
-      background-color: #005a9e;
-      transform: scale(1.05);
     }
 
     .footer {
@@ -173,11 +178,11 @@
   menu.innerHTML = `
     <h3>🛠️ Bypass Chat Filter</h3>
     <div class="tabs">
-      <div class="tab active" data-tab="misc">Misc</div>
-      <div class="tab" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="misc">Misc</div>
+      <div class="tab active" data-tab="profile">Profile</div>
       <div class="tab" data-tab="autoquiz">AutoQuiz</div>
     </div>
-    <div class="tab-content active" id="misc">
+    <div class="tab-content" id="misc">
       <div class="tree-column-container">
         <div class="tree-column">
           <h4>Settings</h4>
@@ -188,29 +193,18 @@
             <label><input type="checkbox" /> Misc Option 1</label>
           </div>
         </div>
-        <div class="tree-column">
-          <h4>Additional Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Misc Option 2</label>
-          </div>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Misc Option 3</label>
-          </div>
-        </div>
       </div>
     </div>
-    <div class="tab-content" id="profile">
+    <div class="tab-content active" id="profile">
       <div class="tree-column-container">
         <div class="tree-column">
           <h4>Profile Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Profile Option 1</label>
+          <div class="profile-picture-container">
+            <span>Your MSP Avatar</span>
           </div>
-        </div>
-        <div class="tree-column">
-          <h4>Other Profile Settings</h4>
-          <div class="tree-item">
-            <label><input type="checkbox" /> Profile Option 2</label>
+          <div class="button-group">
+            <button id="selectPictureButton">Select Image</button>
+            <button id="changePictureButton">Change</button>
           </div>
         </div>
       </div>
@@ -277,12 +271,22 @@
   });
 
   /*************************************
-   * 2. Funkcja wstawiania znaków Unicode
+   * 2. Obsługa przycisków do zmiany obrazu
    *************************************/
-  function insertUnicode(text) {
-    if (typeof text === 'string' && text.trim().length > 1) {
-      return [...text].join('\u200B');
-    }
-    return text;
-  }
+  document.getElementById('selectPictureButton').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg, image/png';
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        alert(`Selected file: ${file.name}`);
+      }
+    });
+    input.click();
+  });
+
+  document.getElementById('changePictureButton').addEventListener('click', () => {
+    alert('Change profile picture functionality placeholder.');
+  });
 })();
