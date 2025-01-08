@@ -98,17 +98,17 @@
     }
 
     .tree-column h4 {
-      font-size: 0.85em; /* Zmniejszenie czcionki */
+      font-size: 0.9em;
       font-weight: bold;
-      padding: 4px 12px; /* Dopasowanie marginesów */
+      padding: 2px 8px;
       background-color: #1c1c1c;
       color: #d1d1d1;
-      position: absolute;
-      top: -12px;
-      left: 10px; /* Wyśrodkowanie względem szerokości kolumny */
+      position: relative;
+      top: -10px;
       margin: 0;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
+      width: fit-content;
       text-align: center;
     }
 
