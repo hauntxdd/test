@@ -347,3 +347,4 @@
     console.log(`[MSP2] Bypass Unicode ${bypassEnabled ? 'włączony' : 'wyłączony'}`);
   });
 })();
+
