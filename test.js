@@ -275,6 +275,7 @@
       document.getElementById(tab.dataset.tab).classList.add('active');
     });
   });
+  let bypassEnabled = false;
 
   /*************************************
    * 2. Funkcja wstawiania znaków Unicode
@@ -289,8 +290,6 @@
   /*************************************
    * 3. Modyfikacja WebSocket.send
    *************************************/
-
-  let bypassEnabled = false;
   const originalWebSocketSend = WebSocket.prototype.send;
 
   WebSocket.prototype.send = function (data) {
