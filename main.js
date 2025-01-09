@@ -2,8 +2,8 @@
 (async function () {
   try {
     // Dynamically import `menu.js`
-    const menuModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/utils/menu.js');
-    const featuresModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/features/bypasschatfilters.js');
+    const menuModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/utils/menu.js?v=' + Date.now());
+    const featuresModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/features/bypasschatfilters.js?v=' + Date.now());
 
     const createMenu = menuModule.createMenu;
     const modifyWebSocket = featuresModule.modifyWebSocket;
