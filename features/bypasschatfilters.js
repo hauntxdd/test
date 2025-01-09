@@ -1,7 +1,7 @@
-// features/bypass_chat_filter.js
+// features/bypasschatfilter.js
 export function insertUnicode(text) {
     if (typeof text === 'string' && text.trim().length > 1) {
-      return [...text].join('\u200B'); // Dodanie znaku zerowej szerokości między literami
+      return [...text].join('\u200B');
     }
     return text;
   }
