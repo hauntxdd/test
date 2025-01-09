@@ -1,6 +1,6 @@
 // main.js
 import { createMenu } from './utils/menu.js';
-import { modifyWebSocket } from './features/bypass_chat_filters.js';
+import { modifyWebSocket } from './features/bypasschatfilters.js';
 
 (function () {
   let bypassEnabled = false;
