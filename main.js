@@ -1,7 +1,6 @@
 // main.js
 (async function () {
   try {
-    // Dynamically import `menu.js`
     const menuModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/utils/menu.js?v=' + Date.now());
     const featuresModule = await import('https://cdn.jsdelivr.net/gh/hauntxdd/test@main/features/bypasschatfilters.js?v=' + Date.now());
 
@@ -10,7 +9,7 @@
 
     let bypassEnabled = false;
 
-    // Tworzenie menu
+    // create functions
     const menu = createMenu();
     const bypassCheckbox = document.getElementById('msp2CheckboxBypass');
 
